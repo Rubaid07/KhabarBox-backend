@@ -6,19 +6,31 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rubaid07/KhabarBox-backend.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Rubaid07/KhabarBox-backend/issues"
+  },
+  "homepage": "https://github.com/Rubaid07/KhabarBox-backend#readme",
   "devDependencies": {
     "@types/node": "^25.2.0",
     "@types/pg": "^8.16.0",
-    "prisma": "^6.19.2",
+    "prisma": "^7.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.18.0"
   }
 }

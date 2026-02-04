@@ -12,3 +12,51 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ENUM 
+enum OrderStatus {
+  PLACED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+}
+
+model ProviderProfiles {
+  id             String   @id @default(uuid())
+  restaurantName String   @db.VarChar(225)
+  description    String   @db.Text
+  address        String   @db.Text
+  logoUrl        String?
+  openingHours   String?
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Meal {
+  id          String  @id @default(uuid())
+  name        String
+  description String? @db.Text
+  price       Decimal @db.Decimal(10, 2)
+  imageUrl    String?
+  dietaryTags       String[] @default([])
+  isAvailable       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Orders {
+  id              String        @id @default(uuid())
+  total_amount    Decimal       @db.Decimal(10, 2)
+  deliveryAddress String
+  status          OrderStatus   @default(PLACED)
+  paymentMethod   PaymentMethod @default(COD)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
