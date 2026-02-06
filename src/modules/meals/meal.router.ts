@@ -4,7 +4,13 @@ import auth, { UserRole } from "../../middleware/auth";
 
 const router = express.Router();
 
-router.post("/", 
+router.get(
+   "/",
+   MealController.getAllMeal
+)
+
+router.post(
+   "/", 
    auth(UserRole.PROVIDER), 
    MealController.createMeal
 );

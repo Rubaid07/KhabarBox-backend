@@ -19,6 +19,19 @@ const createMeal = async (req: Request, res: Response) => {
     }
 };
 
+const getAllMeal = async(req: Request, res: Response) => {
+    try{
+        const result = await mealService.getAllMeal()
+        res.status(200).json(result)
+    }catch(e){
+         res.status(400).json({
+            error: "Meal creation failed",
+            details: e
+        })
+    }
+}
+
 export const MealController = {
   createMeal,
+  getAllMeal
 };
