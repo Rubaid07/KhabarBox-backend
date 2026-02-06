@@ -8,3 +8,13 @@ export type CreateMealInput = {
   isAvailable?: boolean
   categoryId?: string
 }
+
+export type GetMealFilters = {
+  search?: string
+  dietaryTags?: string[]
+  isAvailable?: boolean
+  priceRange?: {
+    min?: number
+    max?: number
+  }
+}
