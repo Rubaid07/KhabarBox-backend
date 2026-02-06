@@ -1,11 +1,12 @@
-import express from "express"
+import express from "express";
 import { MealController } from "./meal.controller";
+import auth, { UserRole } from "../../middleware/auth";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post(
-   '/',
+router.post("/", 
+   auth(UserRole.PROVIDER), 
    MealController.createMeal
-)
+);
 
-export const mealRouter = router;
+export const mealRouter = router; 

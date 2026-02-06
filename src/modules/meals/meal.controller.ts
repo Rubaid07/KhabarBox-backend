@@ -2,8 +2,14 @@ import { Request, Response } from "express";
 import { mealService } from "./meal.service";
 
 const createMeal = async (req: Request, res: Response) => {
+    const user = req.user
     try{
-        const result = await mealService.createMela(req.body)
+        if(!user){
+            return res.status(400).json({
+            error: "Unauthorized!"
+        })
+        }
+        const result = await mealService.createMela(req.body, user.id)
         res.status(201).json(result)
     } catch(e){
         res.status(400).json({
