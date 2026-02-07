@@ -17,6 +17,8 @@ const getAllMeal = async ({
   dietaryTags = [],
   isAvailable,
   priceRange,
+  providerId,
+  categoryId
 }: GetMealFilters) => {
   const andConditions: MealWhereInput[] = [];
 
@@ -41,14 +43,21 @@ const getAllMeal = async ({
   }
 
   if (priceRange) {
-  andConditions.push({
-    price: {
-      ...(priceRange.min !== undefined && { gte: priceRange.min }),
-      ...(priceRange.max !== undefined && { lte: priceRange.max }),
-    },
-  });
-}
+    andConditions.push({
+      price: {
+        ...(priceRange.min !== undefined && { gte: priceRange.min }),
+        ...(priceRange.max !== undefined && { lte: priceRange.max }),
+      },
+    });
+  }
 
+  if(providerId){
+    andConditions.push({ providerId })
+  }
+
+  if (categoryId) {
+    andConditions.push({ categoryId });
+  }
 
   return prisma.meal.findMany({
     where: {
@@ -56,7 +65,6 @@ const getAllMeal = async ({
     },
   });
 };
-
 
 export const mealService = {
   createMela,

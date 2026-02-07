@@ -44,21 +44,20 @@ const getAllMeal = async (req: Request, res: Response) => {
           }
         : undefined;
 
+    const providerId = req.query.providerId as string;
+
+    const categoryId = req.query.categoryId as string | undefined;
+
     const filters = {
       ...(searchString && { search: searchString }),
       ...(dietaryTags.length > 0 && { dietaryTags }),
       ...(typeof isAvailable === "boolean" && { isAvailable }),
       ...(priceRange && { priceRange }),
+      ...(providerId && { providerId }),
+      ...(categoryId && { categoryId }),
     };
 
     const result = await mealService.getAllMeal(filters);
-
-    // const result = await mealService.getAllMeal({
-    //   search: searchString,
-    //   dietaryTags,
-    //   isAvailable,
-    //   priceRange,
-    // });
 
     res.status(200).json(result);
   } catch (e) {

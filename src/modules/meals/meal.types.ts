@@ -17,4 +17,6 @@ export type GetMealFilters = {
     min?: number
     max?: number
   }
+  providerId?: string
+  categoryId?: string;
 }
