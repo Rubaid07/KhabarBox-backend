@@ -2,7 +2,7 @@ import express from "express";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import cors from "cors";
-import { mealRouter } from "./modules/meals/meal.router";
+import { mealRouter } from "./modules/meals/meal.routes";
 
 const app = express();
 
