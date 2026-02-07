@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { mealService } from "./meal.service";
+import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
 const createMeal = async (req: Request, res: Response) => {
   const user = req.user;
@@ -44,9 +45,16 @@ const getAllMeal = async (req: Request, res: Response) => {
           }
         : undefined;
 
-    const providerId = req.query.providerId as string;
+    const providerId =
+      typeof req.query.providerId === "string"
+        ? req.query.providerId
+        : undefined;
 
     const categoryId = req.query.categoryId as string | undefined;
+
+    const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(
+      req.query,
+    );
 
     const filters = {
       ...(searchString && { search: searchString }),
@@ -55,6 +63,11 @@ const getAllMeal = async (req: Request, res: Response) => {
       ...(priceRange && { priceRange }),
       ...(providerId && { providerId }),
       ...(categoryId && { categoryId }),
+      page,
+      limit,
+      skip,
+      sortBy,
+      sortOrder,
     };
 
     const result = await mealService.getAllMeal(filters);

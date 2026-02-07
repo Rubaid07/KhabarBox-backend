@@ -18,7 +18,12 @@ const getAllMeal = async ({
   isAvailable,
   priceRange,
   providerId,
-  categoryId
+  categoryId,
+  page,
+  limit,
+  skip,
+  sortBy,
+  sortOrder,
 }: GetMealFilters) => {
   const andConditions: MealWhereInput[] = [];
 
@@ -51,19 +56,40 @@ const getAllMeal = async ({
     });
   }
 
-  if(providerId){
-    andConditions.push({ providerId })
+  if (providerId) {
+    andConditions.push({ providerId });
   }
 
   if (categoryId) {
     andConditions.push({ categoryId });
   }
 
-  return prisma.meal.findMany({
+  const meal = await prisma.meal.findMany({
+    where: {
+      AND: andConditions,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+  });
+
+  const total = await prisma.meal.count({
     where: {
       AND: andConditions,
     },
   });
+
+  return {
+    data: meal,
+    metaData: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 export const mealService = {
