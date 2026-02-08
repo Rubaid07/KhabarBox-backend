@@ -80,9 +80,28 @@ const removeItem = async (req: Request, res: Response) => {
   }
 };
 
+const clearCart = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+
+    await cartService.clearCart(user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Cart cleared",
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message || "Failed to clear cart",
+    });
+  }
+};
+
 export const CartController = {
     addToCart,
     getMyCart,
     updateQuantity,
-    removeItem
+    removeItem,
+    clearCart
 }
