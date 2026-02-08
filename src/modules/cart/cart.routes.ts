@@ -22,6 +22,10 @@ router.patch(
     CartController.updateQuantity
 )
 
-
+router.delete(
+    "/:cartId", 
+    auth(UserRole.CUSTOMER), 
+    CartController.removeItem
+);
 
 export const cartRouter = router

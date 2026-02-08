@@ -1,6 +1,5 @@
 import { Request, Response } from "express"
 import { cartService } from "./cart.service";
-import { UserRole } from "../../middleware/auth";
 
 const addToCart = async (req: Request, res: Response) => {
   try {
@@ -61,8 +60,29 @@ const updateQuantity = async (req: Request, res: Response) => {
   }
 };
 
+const removeItem = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+
+    const { cartId } = req.params;
+
+    await cartService.removeItem(cartId as string, user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Item removed from cart",
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message || "Failed to remove",
+    });
+  }
+};
+
 export const CartController = {
     addToCart,
     getMyCart,
-    updateQuantity
+    updateQuantity,
+    removeItem
 }
