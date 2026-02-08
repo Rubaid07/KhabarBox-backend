@@ -20,4 +20,10 @@ router.post(
    MealController.createMeal
 );
 
+router.patch(
+   "/:mealId", 
+   auth(UserRole.PROVIDER), 
+   MealController.updateMeal
+);
+
 export const mealRouter = router; 

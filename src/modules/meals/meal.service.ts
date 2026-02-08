@@ -130,8 +130,19 @@ const getMealById = async (id: string) => {
   });
 };
 
+const updateMeal = async (id: string, data: Partial<CreateMealInput>) => {
+  return prisma.meal.update({
+    where: { id },
+    data,
+    include: {
+      category: true,
+    },
+  });
+};
+
 export const mealService = {
   createMela,
   getAllMeal,
-  getMealById
+  getMealById,
+  updateMeal
 };

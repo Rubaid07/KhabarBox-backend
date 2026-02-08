@@ -16,7 +16,7 @@ const createMeal = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: "Meal creation failed",
-      details: e
+      details: e,
     });
   }
 };
@@ -100,8 +100,45 @@ const getMealById = async (req: Request, res: Response) => {
   }
 };
 
+const updateMeal = async (req: Request, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    // Check if meal belongs to this provider
+    const existingMeal = await mealService.getMealById(mealId as string);
+
+    if (!existingMeal) {
+      return res.status(404).json({ success: false, error: "Meal not found" });
+    }
+
+    if (existingMeal.providerId !== user.id) {
+      return res.status(403).json({ success: false, error: "Not your meal" });
+    }
+
+    const result = await mealService.updateMeal(mealId as string, req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Meal updated successfully",
+      data: result,
+    });
+  } catch (e) {
+    res.status(400).json({
+      success: false,
+      error: "Update failed",
+      details: e,
+    });
+  }
+};
+
 export const MealController = {
   createMeal,
   getAllMeal,
   getMealById,
+  updateMeal,
 };
