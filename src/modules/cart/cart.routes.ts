@@ -16,4 +16,12 @@ router.post(
     CartController.addToCart
 )
 
+router.patch(
+    "/:cartId",
+    auth(UserRole.CUSTOMER),
+    CartController.updateQuantity
+)
+
+
+
 export const cartRouter = router

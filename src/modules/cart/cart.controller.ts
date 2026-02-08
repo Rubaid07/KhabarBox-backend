@@ -3,11 +3,8 @@ import { cartService } from "./cart.service";
 import { UserRole } from "../../middleware/auth";
 
 const addToCart = async (req: Request, res: Response) => {
-    try {
-    const user = req.user;
-    if (!user || user.role !== UserRole.CUSTOMER) {
-      return res.status(403).json({ success: false, message: "Customer only" });
-    }
+  try {
+    const user = req.user!;
 
     const result = await cartService.addToCart(user.id, req.body);
 
@@ -26,10 +23,7 @@ const addToCart = async (req: Request, res: Response) => {
 
 const getMyCart = async (req: Request, res: Response) => {
   try {
-    const user = req.user;
-    if (!user || user.role !== UserRole.CUSTOMER) {
-      return res.status(403).json({ success: false, message: "Customer only" });
-    }
+    const user = req.user!;
 
     const result = await cartService.getMyCart(user.id);
 
@@ -45,7 +39,30 @@ const getMyCart = async (req: Request, res: Response) => {
   }
 };
 
+const updateQuantity = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+
+    const { cartId } = req.params;
+    const { quantity } = req.body;
+
+    const result = await cartService.updateQuantity(cartId as string, user.id, quantity);
+
+    res.status(200).json({
+      success: true,
+      message: "Quantity updated",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message || "Failed to update",
+    });
+  }
+};
+
 export const CartController = {
     addToCart,
-    getMyCart
+    getMyCart,
+    updateQuantity
 }
