@@ -136,9 +136,44 @@ const updateMeal = async (req: Request, res: Response) => {
   }
 };
 
+const deleteMeal = async (req: Request, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const existingMeal = await mealService.getMealById(mealId as string);
+    
+    if (!existingMeal) {
+      return res.status(404).json({ success: false, error: "Meal not found" });
+    }
+    
+    if (existingMeal.providerId !== user.id) {
+      return res.status(403).json({ success: false, error: "Not your meal" });
+    }
+
+    await mealService.deleteMeal(mealId as string);
+    
+    res.status(200).json({
+      success: true,
+      message: "Meal deleted successfully",
+    });
+  } catch (e) {
+    res.status(400).json({
+      success: false,
+      error: "Delete failed",
+      details: e,
+    });
+  }
+};
+
 export const MealController = {
   createMeal,
   getAllMeal,
   getMealById,
   updateMeal,
+  deleteMeal
 };
