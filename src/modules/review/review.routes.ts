@@ -4,6 +4,11 @@ import { ReviewController } from "./review.controller";
 
 const router = Router();
 
+router.get(
+    "/",
+    ReviewController.getReviews
+)
+
 router.post(
     "/", 
     auth(UserRole.CUSTOMER),

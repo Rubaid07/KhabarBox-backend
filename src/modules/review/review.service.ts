@@ -63,6 +63,45 @@ const createReview = async(data: CreateReviewInput & {customerId: string}) => {
   return review;
 };
 
+const getReviews = async (mealId: string) => {
+  const reviews = await prisma.review.findMany({
+    where: { mealId },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const avgRating = await prisma.review.aggregate({
+    where: { mealId },
+    _avg: {
+      rating: true,
+    },
+    _count: {
+      rating: true,
+    },
+  });
+
+  return {
+    reviews,
+    meta: {
+      total: avgRating._count.rating,
+      averageRating: avgRating._avg.rating 
+        ? Number(avgRating._avg.rating.toFixed(1)) 
+        : 0,
+    },
+  };
+};
+
 export const reviewService = {
-    createReview
+    createReview,
+    getReviews
 }

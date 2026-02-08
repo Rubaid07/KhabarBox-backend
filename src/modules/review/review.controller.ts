@@ -26,6 +26,24 @@ const createReview = async (req: Request, res: Response) => {
   }
 };
 
+const getReviews = async (req: Request, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    const result = await reviewService.getReviews(mealId as string);
+    
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch reviews",
+    });
+  }
+};
+
 export const ReviewController = {
     createReview,
+    getReviews
 }
