@@ -20,4 +20,10 @@ router.post(
     ReviewController.createReview
 )
 
+router.patch(
+    "/:reviewId", 
+    auth(UserRole.CUSTOMER),
+    ReviewController.updateReview
+)
+
 export const reviewRouter = router

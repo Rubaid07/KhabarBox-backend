@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { CreateReviewInput } from "./review.types";
+import { CreateReviewInput, UpdateReviewInput } from "./review.types";
 
 const createReview = async(data: CreateReviewInput & {customerId: string}) => {
     const { mealId, customerId, rating, comment } = data
@@ -128,8 +128,42 @@ const getMyReviews = async (customerId: string) => {
   });
 };
 
+const updateReview = async (
+  reviewId: string,
+  customerId: string,
+  data: UpdateReviewInput
+) => {
+  const existingReview = await prisma.review.findFirst({
+    where: {
+      id: reviewId,
+      customerId, 
+    },
+  });
+
+  if (!existingReview) {
+    throw new Error("Review not found or not authorized");
+  }
+
+  if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
+    throw new Error("Rating must be between 1 and 5");
+  }
+
+  return prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      ...(data.rating !== undefined && { rating: data.rating }),
+      ...(data.comment !== undefined && { comment: data.comment }),
+    },
+    include: {
+      customer: { select: { id: true, name: true, image: true } },
+      meal: { select: { id: true, name: true } },
+    },
+  });
+};
+
 export const reviewService = {
     createReview,
     getReviews,
-    getMyReviews
+    getMyReviews,
+    updateReview
 }

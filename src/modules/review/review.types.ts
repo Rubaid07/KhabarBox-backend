@@ -4,3 +4,8 @@ export interface CreateReviewInput {
   rating: number;
   comment?: string | null;
 }
+
+export interface UpdateReviewInput {
+  rating?: number;
+  comment?: string;
+}

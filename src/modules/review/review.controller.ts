@@ -64,8 +64,37 @@ const getMyReviews = async (req: Request, res: Response) => {
   }
 };
 
+const updateReview = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { reviewId } = req.params;
+    const { rating, comment } = req.body;
+
+    const result = await reviewService.updateReview(reviewId as string, user.id, {
+      rating,
+      comment,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Review updated successfully",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(403).json({
+      success: false,
+      message: e.message || "Failed to update review",
+    });
+  }
+};
+
 export const ReviewController = {
     createReview,
     getReviews,
-    getMyReviews
+    getMyReviews,
+    updateReview
 }
