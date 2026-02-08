@@ -92,9 +92,33 @@ const updateReview = async (req: Request, res: Response) => {
   }
 };
 
+const deleteReview = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { reviewId } = req.params;
+
+    await reviewService.deleteReview(reviewId as string, user.id, user.role);
+
+    res.status(200).json({
+      success: false,
+      message: "Review deleted successfully",
+    });
+  } catch (e: any) {
+    res.status(403).json({
+      success: false,
+      message: e.message || "Failed to delete review",
+    });
+  }
+};
+
 export const ReviewController = {
     createReview,
     getReviews,
     getMyReviews,
-    updateReview
+    updateReview,
+    deleteReview
 }

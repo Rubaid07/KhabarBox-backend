@@ -161,9 +161,36 @@ const updateReview = async (
   });
 };
 
+const deleteReview = async (
+  reviewId: string,
+  userId: string,
+  userRole: string
+) => {
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+  });
+
+  if (!review) {
+    throw new Error("Review not found");
+  }
+
+  // Check permission: own review OR admin
+  const isOwner = review.customerId === userId;
+  const isAdmin = userRole === "ADMIN";
+
+  if (!isOwner && !isAdmin) {
+    throw new Error("Not authorized to delete this review");
+  }
+
+  return prisma.review.delete({
+    where: { id: reviewId },
+  });
+};
+
 export const reviewService = {
     createReview,
     getReviews,
     getMyReviews,
-    updateReview
+    updateReview,
+    deleteReview
 }
