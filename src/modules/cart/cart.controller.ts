@@ -24,6 +24,28 @@ const addToCart = async (req: Request, res: Response) => {
   }
 };
 
+const getMyCart = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== UserRole.CUSTOMER) {
+      return res.status(403).json({ success: false, message: "Customer only" });
+    }
+
+    const result = await cartService.getMyCart(user.id);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message || "Failed to fetch cart",
+    });
+  }
+};
+
 export const CartController = {
-    addToCart
+    addToCart,
+    getMyCart
 }

@@ -48,6 +48,42 @@ const addToCart = async (customerId: string, data: AddToCartInput) => {
   });
 };
 
+const getMyCart = async (customerId: string) => {
+  const cartItems = await prisma.cartItem.findMany({
+    where: { customerId },
+    include: {
+      meal: {
+        include: {
+          provider: {
+            select: {
+              providerProfiles: {
+                select: { restaurantName: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Calculate totals
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = cartItems.reduce(
+    (sum, item) => sum + Number(item.meal.price) * item.quantity,
+    0,
+  );
+
+  return {
+    items: cartItems,
+    meta: {
+      totalItems,
+      totalAmount: Number(totalAmount.toFixed(2)),
+    },
+  };
+};
+
 export const cartService = {
-    addToCart
-}
+  addToCart,
+  getMyCart,
+};
