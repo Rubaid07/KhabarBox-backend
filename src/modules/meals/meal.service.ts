@@ -92,7 +92,46 @@ const getAllMeal = async ({
   };
 };
 
+const getMealById = async (id: string) => {
+  return prisma.meal.findUnique({
+    where: { id },
+    include: {
+      provider: {
+        select: {
+          id: true,
+          name: true,
+          providerProfiles: {
+            select: {
+              restaurantName: true,
+              address: true,
+            },
+          },
+        },
+      },
+      category: true,
+      reviews: {
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      _count: {
+        select: { reviews: true },
+      },
+    },
+  });
+};
+
 export const mealService = {
   createMela,
   getAllMeal,
+  getMealById
 };

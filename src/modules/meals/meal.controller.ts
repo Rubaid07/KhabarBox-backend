@@ -13,9 +13,10 @@ const createMeal = async (req: Request, res: Response) => {
     const result = await mealService.createMela(req.body, user.id);
     res.status(201).json(result);
   } catch (e) {
-    res.status(400).json({
+    res.status(500).json({
+      success: false,
       error: "Meal creation failed",
-      details: e,
+      details: e
     });
   }
 };
@@ -74,8 +75,26 @@ const getAllMeal = async (req: Request, res: Response) => {
 
     res.status(200).json(result);
   } catch (e) {
-    res.status(400).json({
-      error: "Fetching meals failed",
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch meal",
+      details: e,
+    });
+  }
+};
+
+const getMealById = async (req: Request, res: Response) => {
+  try {
+    const { mealId } = req.params;
+    if (!mealId) {
+      throw new Error("Meal id not found");
+    }
+    const result = await mealService.getMealById(mealId as string);
+    res.status(201).json(result);
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch meal",
       details: e,
     });
   }
@@ -84,4 +103,5 @@ const getAllMeal = async (req: Request, res: Response) => {
 export const MealController = {
   createMeal,
   getAllMeal,
+  getMealById,
 };

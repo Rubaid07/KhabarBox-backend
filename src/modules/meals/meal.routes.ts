@@ -9,6 +9,11 @@ router.get(
    MealController.getAllMeal
 )
 
+router.get(
+   "/:mealId",
+   MealController.getMealById
+)
+
 router.post(
    "/", 
    auth(UserRole.PROVIDER), 
