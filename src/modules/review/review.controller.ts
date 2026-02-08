@@ -43,7 +43,29 @@ const getReviews = async (req: Request, res: Response) => {
   }
 };
 
+const getMyReviews = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const result = await reviewService.getMyReviews(user.id);
+    
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch reviews",
+    });
+  }
+};
+
 export const ReviewController = {
     createReview,
-    getReviews
+    getReviews,
+    getMyReviews
 }

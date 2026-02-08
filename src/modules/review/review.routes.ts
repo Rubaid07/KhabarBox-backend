@@ -5,8 +5,13 @@ import { ReviewController } from "./review.controller";
 const router = Router();
 
 router.get(
-    "/",
+    "/meals/:mealId",
     ReviewController.getReviews
+)
+
+router.get(
+    "/my",
+    ReviewController.getMyReviews
 )
 
 router.post(
