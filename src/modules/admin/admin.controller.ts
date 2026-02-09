@@ -46,8 +46,44 @@ const getAllOrders = async (req: Request, res: Response) => {
   }
 };
 
+const suspendUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const result = await adminService.suspendUser(userId as string);
+    res.json({
+      success: true,
+      message: "User suspended",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};
+
+const activateUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const result = await adminService.activateUser(userId as string);
+    res.json({
+      success: true,
+      message: "User activated",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};
+
 export const AdminController = {
   getDashboardStats,
   getAllUsers,
   getAllOrders,
+  suspendUser,
+  activateUser,
 };

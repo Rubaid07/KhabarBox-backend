@@ -110,8 +110,37 @@ const getAllOrders = async (options: any) => {
   };
 };
 
+const suspendUser = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) throw new Error("User not found");
+  if (user.role === "ADMIN") throw new Error("Cannot suspend admin");
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { status: "SUSPENDED" },
+  });
+};
+
+const activateUser = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { status: "ACTIVE" },
+  });
+};
+
 export const adminService = {
   getDashboardStats,
   getAllUsers,
   getAllOrders,
+  suspendUser,
+  activateUser
 };

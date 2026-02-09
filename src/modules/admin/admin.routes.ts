@@ -19,5 +19,15 @@ router.get(
     auth(UserRole.ADMIN), 
     AdminController.getAllOrders
 );
+router.patch(
+  "/users/:userId/suspend",
+  auth(UserRole.ADMIN),
+  AdminController.suspendUser
+);
+router.patch(
+  "/users/:userId/activate",
+  auth(UserRole.ADMIN),
+  AdminController.activateUser
+);
 
 export const adminRoutes = router;
