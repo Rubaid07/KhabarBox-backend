@@ -59,8 +59,28 @@ const getProviderOrders = async (req: Request, res: Response) => {
   }
 };
 
+const getOrderById = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { id } = req.params;
+
+    const result = await orderService.getOrderById(id as string, user.id, user.role);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(403).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};
+
 export const OrderController = {
     placeOrder,
     getMyOrders,
-    getProviderOrders
+    getProviderOrders,
+    getOrderById
 }

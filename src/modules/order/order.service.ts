@@ -1,5 +1,6 @@
 import { OrdersCreateInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
+import { UserRole } from "../../middleware/auth";
 
 const placeOrder = async (
   customerId: string,
@@ -110,8 +111,36 @@ const getProviderOrders = async (providerId: string) => {
   });
 };
 
+const getOrderById = async (orderId: string, userId: string, userRole: string) => {
+  const order = await prisma.orders.findUnique({
+    where: { id: orderId },
+    include: {
+      orderItems: { include: { meal: true } },
+      customer: { select: { id: true, name: true, phone: true } },
+      provider: {
+        select: {
+          id: true,
+          providerProfile: { select: { restaurantName: true, address: true } },
+        },
+      },
+    },
+  });
+
+  if (!order) throw new Error("Order not found");
+
+  const isOwner = order.customerId === userId || order.providerId === userId;
+  const isAdmin = userRole === UserRole.ADMIN;
+
+  if (!isOwner && !isAdmin) {
+    throw new Error("Not authorized");
+  }
+
+  return order;
+};
+
 export const orderService = {
     placeOrder,
     getMyOrders,
-    getProviderOrders
+    getProviderOrders,
+    getOrderById
 }

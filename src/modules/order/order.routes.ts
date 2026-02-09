@@ -5,6 +5,12 @@ import { OrderController } from "./order.controller";
 const router = Router()
 
 router.get(
+    "/:id", 
+    auth(),
+    OrderController.getOrderById
+);
+
+router.get(
     "/my", 
     auth(UserRole.CUSTOMER), 
     OrderController.getMyOrders
@@ -15,6 +21,7 @@ router.get(
     auth(UserRole.PROVIDER), 
     OrderController.getProviderOrders
 );
+
 
 router.post(
     "/", 
