@@ -85,8 +85,35 @@ const updateProfile = async (
   });
 };
 
+const getPublicProfile = async (userId: string) => {
+  const profile = await prisma.providerProfile.findUnique({
+    where: { userId },
+    select: {
+      restaurantName: true,
+      description: true,
+      address: true,
+      logoUrl: true,
+      openingHours: true,
+      isVerified: true,
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  if (!profile) {
+    throw new Error("Provider profile not found");
+  }
+
+  return profile;
+};
+
 export const providerProfileService = {
   createProfile,
   getMyProfile,
-  updateProfile
+  updateProfile,
+  getPublicProfile
 };

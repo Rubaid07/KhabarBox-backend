@@ -5,6 +5,11 @@ import { ProviderProfileController } from "./providerProfile.controller";
 const router = Router();
 
 router.get(
+    "/:userId",
+    ProviderProfileController.getPublicProfile
+);
+
+router.get(
     "/me", 
     auth(UserRole.PROVIDER), 
     ProviderProfileController.getMyProfile

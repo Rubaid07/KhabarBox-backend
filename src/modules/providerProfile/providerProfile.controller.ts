@@ -57,8 +57,27 @@ const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
+const getPublicProfile = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    const result = await providerProfileService.getPublicProfile(userId as string);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(404).json({
+      success: false,
+      message: e.message || "Profile not found",
+    });
+  }
+};
+
 export const ProviderProfileController = {
   createProfile,
   getMyProfile,
-  updateProfile
+  updateProfile,
+  getPublicProfile
 };
