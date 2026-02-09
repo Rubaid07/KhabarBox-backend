@@ -5,6 +5,7 @@ import cors from "cors";
 import { mealRouter } from "./modules/meals/meal.routes";
 import { reviewRouter } from "./modules/review/review.routes";
 import { cartRouter } from "./modules/cart/cart.routes";
+import { orderRouter } from "./modules/order/order.routes";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use("/meals", mealRouter)
 app.use("/reviews", reviewRouter)
 app.use("/cart", cartRouter)
+app.use("/orders", orderRouter)
 
 app.get("/", (req, res) => {
   res.send("Hello world");
