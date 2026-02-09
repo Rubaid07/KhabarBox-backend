@@ -10,10 +10,18 @@ router.get(
     OrderController.getMyOrders
 );
 
+router.get(
+    "/provider", 
+    auth(UserRole.PROVIDER), 
+    OrderController.getProviderOrders
+);
+
 router.post(
     "/", 
     auth(UserRole.CUSTOMER), 
     OrderController.placeOrder
 );
+
+
 
 export const orderRouter = router
