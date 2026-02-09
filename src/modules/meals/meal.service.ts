@@ -100,7 +100,7 @@ const getMealById = async (id: string) => {
         select: {
           id: true,
           name: true,
-          providerProfiles: {
+          providerProfile: {
             select: {
               restaurantName: true,
               address: true,

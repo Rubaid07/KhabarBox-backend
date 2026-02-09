@@ -56,7 +56,7 @@ const getMyCart = async (customerId: string) => {
         include: {
           provider: {
             select: {
-              providerProfiles: {
+              providerProfile: {
                 select: { restaurantName: true },
               },
             },

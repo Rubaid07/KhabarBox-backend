@@ -16,6 +16,7 @@ const placeOrder = async (
     throw new Error("Cart is empty");
   }
 
+  // group by provider
   const itemsByProvider = cartItems.reduce((acc, item) => {
     const providerId = item.meal.providerId;
     if (!acc[providerId]) acc[providerId] = [];
@@ -25,6 +26,7 @@ const placeOrder = async (
 
   const orders = [];
 
+  // create order for each provider
   for (const [providerId, items] of Object.entries(itemsByProvider)) {
     const totalAmount = items.reduce(
       (sum, item) => sum + Number(item.meal.price) * item.quantity,
@@ -51,7 +53,7 @@ const placeOrder = async (
         orderItems: { include: { meal: true } },
         provider: {
           select: {
-            providerProfiles: { select: { restaurantName: true } },
+            providerProfile: { select: { restaurantName: true } },
           },
         },
       },
@@ -59,12 +61,43 @@ const placeOrder = async (
 
     orders.push(order);
   }
-
+  // Clear cart
   await prisma.cartItem.deleteMany({ where: { customerId } });
 
   return orders;
 };
 
+const getMyOrders = async (customerId: string) => {
+  return prisma.orders.findMany({
+    where: { customerId },
+    include: {
+      orderItems: {
+        include: { 
+          meal: { 
+            select: { 
+              name: true, 
+              imageUrl: true 
+            } 
+          } 
+        },
+      },
+      provider: {
+        include: {
+          providerProfile: {
+            select: {
+              restaurantName: true,
+              address: true,
+              logoUrl: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 export const orderService = {
-    placeOrder
+    placeOrder,
+    getMyOrders
 }

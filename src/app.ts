@@ -6,6 +6,7 @@ import { mealRouter } from "./modules/meals/meal.routes";
 import { reviewRouter } from "./modules/review/review.routes";
 import { cartRouter } from "./modules/cart/cart.routes";
 import { orderRouter } from "./modules/order/order.routes";
+import { providerProfileRoutes } from "./modules/providerProfile/providerProfile.routes";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/meals", mealRouter)
 app.use("/reviews", reviewRouter)
 app.use("/cart", cartRouter)
 app.use("/orders", orderRouter)
+app.use("/provider/profile", providerProfileRoutes)
 
 app.get("/", (req, res) => {
   res.send("Hello world");

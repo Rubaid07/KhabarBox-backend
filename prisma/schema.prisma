@@ -176,7 +176,7 @@ model User {
   role             String?          @default("CUSTOMER")
   phone            String?
   status           String?          @default("ACTIVE")
-  providerProfiles ProviderProfile?
+  providerProfile ProviderProfile?
   meals            Meal[]
   cartItems        CartItem[]
   reviews          Review[]
