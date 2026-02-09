@@ -104,10 +104,31 @@ const updateStatus = async (req: Request, res: Response) => {
   }
 };
 
+const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { id } = req.params;
+
+    const result = await orderService.cancelOrder(id as string, user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Order cancelled",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};
+
 export const OrderController = {
     placeOrder,
     getMyOrders,
     getProviderOrders,
     getOrderById,
-    updateStatus
+    updateStatus,
+    cancelOrder
 }

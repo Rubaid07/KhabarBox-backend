@@ -170,10 +170,28 @@ const updateStatus = async (
   });
 };
 
+const cancelOrder = async (orderId: string, customerId: string) => {
+  const order = await prisma.orders.findFirst({
+    where: { id: orderId, customerId },
+  });
+
+  if (!order) throw new Error("Order not found");
+
+  if (!["PLACED", "PREPARING"].includes(order.status)) {
+    throw new Error("Cannot cancel this order");
+  }
+
+  return prisma.orders.update({
+    where: { id: orderId },
+    data: { status: "CANCELLED" },
+  });
+};
+
 export const orderService = {
     placeOrder,
     getMyOrders,
     getProviderOrders,
     getOrderById,
-    updateStatus
+    updateStatus,
+    cancelOrder
 }

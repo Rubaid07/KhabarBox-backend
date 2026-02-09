@@ -28,6 +28,12 @@ router.patch(
     OrderController.updateStatus
 );
 
+router.patch(
+    "/:id/cancel", 
+    auth(UserRole.CUSTOMER), 
+    OrderController.cancelOrder
+);
+
 router.post(
     "/", 
     auth(UserRole.CUSTOMER), 
