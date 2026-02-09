@@ -22,6 +22,11 @@ router.get(
     OrderController.getProviderOrders
 );
 
+router.patch(
+    "/:id/status", 
+    auth(UserRole.PROVIDER), 
+    OrderController.updateStatus
+);
 
 router.post(
     "/", 

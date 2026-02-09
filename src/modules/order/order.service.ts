@@ -1,3 +1,4 @@
+import { OrderStatus } from "../../../generated/prisma/enums";
 import { OrdersCreateInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
 import { UserRole } from "../../middleware/auth";
@@ -138,9 +139,41 @@ const getOrderById = async (orderId: string, userId: string, userRole: string) =
   return order;
 };
 
+const updateStatus = async (
+  orderId: string,
+  providerId: string,
+  newStatus: OrderStatus
+) => {
+  const order = await prisma.orders.findFirst({
+    where: { id: orderId, providerId },
+  });
+
+  if (!order) throw new Error("Order not found");
+
+  const transitions: Record<OrderStatus, OrderStatus[]> = {
+    PLACED: ["PREPARING", "CANCELLED"],
+    PREPARING: ["READY", "CANCELLED"],
+    READY: ["DELIVERED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  };
+
+  const allowed = transitions[order.status] ?? [];
+  
+  if (!allowed.includes(newStatus)) {
+    throw new Error(`Cannot change from ${order.status} to ${newStatus}`);
+  }
+
+  return prisma.orders.update({
+    where: { id: orderId },
+    data: { status: newStatus },
+  });
+};
+
 export const orderService = {
     placeOrder,
     getMyOrders,
     getProviderOrders,
-    getOrderById
+    getOrderById,
+    updateStatus
 }

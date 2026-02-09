@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { orderService } from "./order.service";
+import { OrderStatus } from "../../../generated/prisma/enums";
 
 const placeOrder = async (req: Request, res: Response) => {
   try {
@@ -78,9 +79,35 @@ const getOrderById = async (req: Request, res: Response) => {
   }
 };
 
+const updateStatus = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const result = await orderService.updateStatus(
+      id as string, 
+      user.id, 
+      status as OrderStatus
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Status updated",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};
+
 export const OrderController = {
     placeOrder,
     getMyOrders,
     getProviderOrders,
-    getOrderById
+    getOrderById,
+    updateStatus
 }
