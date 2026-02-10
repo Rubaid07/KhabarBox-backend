@@ -184,9 +184,47 @@ const getWeeklyChart = async (providerId: string) => {
   return chartData;
 };
 
+const getMyMeals = async (
+  providerId: string,
+  options: { page: number; limit: number; isAvailable?: boolean }
+) => {
+  const { page = 1, limit = 10, isAvailable } = options;
+  const skip = (page - 1) * limit;
+
+  const where: any = { providerId };
+  if (isAvailable !== undefined) {
+    where.isAvailable = isAvailable;
+  }
+
+  const [meals, total] = await Promise.all([
+    prisma.meal.findMany({
+      where,
+      include: {
+        category: { select: { name: true } },
+        _count: { select: { reviews: true, orderItems: true } },
+      },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.meal.count({ where }),
+  ]);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    data: meals,
+  };
+};
+
 export const providerDashboardService = {
   getStats,
   getRecentOrders,
   getPopularMeals,
   getWeeklyChart,
+  getMyMeals
 };

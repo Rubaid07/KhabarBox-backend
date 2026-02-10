@@ -82,9 +82,35 @@ const getWeeklyChart = async (req: Request, res: Response) => {
   }
 };
 
+const getMyMeals = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    
+    const options: { page: number; limit: number; isAvailable?: boolean } = {
+      page,
+      limit,
+    };
+
+    if (req.query.isAvailable === "true") {
+      options.isAvailable = true;
+    } else if (req.query.isAvailable === "false") {
+      options.isAvailable = false;
+    }
+
+    const result = await providerDashboardService.getMyMeals(user.id, options);
+
+    res.json({ success: true, ...result });
+  } catch (e: any) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
 export const ProviderDashboardController = {
   getStats,
   getRecentOrders,
   getPopularMeals,
   getWeeklyChart,
+  getMyMeals
 };
