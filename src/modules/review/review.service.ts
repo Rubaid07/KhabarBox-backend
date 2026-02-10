@@ -112,7 +112,7 @@ const getMyReviews = async (customerId: string) => {
           imageUrl: true,
           provider: {
             select: {
-              providerProfiles: {
+              providerProfile: {
                 select: {
                   restaurantName: true,
                 },
