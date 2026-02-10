@@ -29,5 +29,20 @@ router.patch(
   auth(UserRole.ADMIN),
   AdminController.activateUser
 );
+router.delete(
+  "/users/:userId", 
+  auth(UserRole.ADMIN), 
+  AdminController.deleteUser
+);
+router.patch(
+  "/orders/:orderId/status", 
+  auth(UserRole.ADMIN), 
+  AdminController.updateOrderStatus
+);
+router.patch(
+  "/orders/:orderId/cancel", 
+  auth(UserRole.ADMIN), 
+  AdminController.cancelOrder
+);
 
 export const adminRoutes = router;

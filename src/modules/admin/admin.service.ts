@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
+import { UserRole } from "../../middleware/auth";
 
 const getDashboardStats = async () => {
   const [
@@ -137,10 +138,66 @@ const activateUser = async (userId: string) => {
   });
 };
 
+const deleteUser = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      providerOrders: { where: { status: { not: "DELIVERED" } } },
+      customerOrders: { where: { status: { not: "DELIVERED" } } },
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+  if (user.role === "ADMIN") throw new Error("Cannot delete admin");
+
+  const pendingOrders =
+    user.role === UserRole.PROVIDER
+      ? user.providerOrders.length
+      : user.customerOrders.length;
+
+  if (pendingOrders > 0) {
+    throw new Error("User has pending orders");
+  }
+
+  return prisma.user.delete({ where: { id: userId } });
+};
+
+const updateOrderStatus = async (orderId: string, status: string) => {
+  const order = await prisma.orders.findUnique({ where: { id: orderId } });
+  if (!order) throw new Error("Order not found");
+
+  const validStatuses = ["PLACED", "PREPARING", "READY", "DELIVERED", "CANCELLED"];
+  if (!validStatuses.includes(status)) {
+    throw new Error("Invalid status");
+  }
+
+  return prisma.orders.update({
+    where: { id: orderId },
+    data: { status: status as any },
+  });
+};
+
+const cancelOrder = async (orderId: string) => {
+  const order = await prisma.orders.findUnique({ where: { id: orderId } });
+  if (!order) throw new Error("Order not found");
+
+  if (order.status === "DELIVERED" || order.status === "CANCELLED") {
+    throw new Error("Cannot cancel this order");
+  }
+
+  return prisma.orders.update({
+    where: { id: orderId },
+    data: { status: "CANCELLED" },
+  });
+};
+
 export const adminService = {
   getDashboardStats,
   getAllUsers,
   getAllOrders,
   suspendUser,
-  activateUser
+  activateUser,
+  deleteUser,
+  updateOrderStatus,
+  cancelOrder
 };
