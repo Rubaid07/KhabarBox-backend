@@ -8,6 +8,7 @@ import { cartRouter } from "./modules/cart/cart.routes";
 import { orderRouter } from "./modules/order/order.routes";
 import { providerProfileRoutes } from "./modules/providerProfile/providerProfile.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
+import { categoryRoutes } from "./modules/category/category.routes";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/cart", cartRouter)
 app.use("/orders", orderRouter)
 app.use("/provider/profile", providerProfileRoutes)
 app.use("/admin", adminRoutes)
+app.use("/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello world");
