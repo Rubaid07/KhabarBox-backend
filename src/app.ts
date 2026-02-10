@@ -9,6 +9,7 @@ import { orderRouter } from "./modules/order/order.routes";
 import { providerProfileRoutes } from "./modules/providerProfile/providerProfile.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { categoryRoutes } from "./modules/category/category.routes";
+import { providerDashboardRoutes } from "./modules/providerDashboard/providerDashboard.routes";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/orders", orderRouter)
 app.use("/provider/profile", providerProfileRoutes)
 app.use("/admin", adminRoutes)
 app.use("/categories", categoryRoutes);
+app.use("/provider/dashboard", providerDashboardRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello world");
