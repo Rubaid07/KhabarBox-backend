@@ -5,6 +5,16 @@ import { ProviderProfileController } from "./providerProfile.controller";
 const router = Router();
 
 router.get(
+    "/top-rated", 
+    ProviderProfileController.getTopRatedRestaurants
+);
+
+router.get(
+    "/", 
+    ProviderProfileController.getAllProfiles
+);
+
+router.get(
     "/:userId",
     ProviderProfileController.getPublicProfile
 );

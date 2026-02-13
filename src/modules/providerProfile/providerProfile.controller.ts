@@ -75,9 +75,43 @@ const getPublicProfile = async (req: Request, res: Response) => {
   }
 };
 
+const getAllProfiles = async (req: Request, res: Response) => {
+  try {
+    const result = await providerProfileService.getAllProfiles();
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message || "Failed to fetch restaurants",
+    });
+  }
+};
+
+const getTopRatedRestaurants = async (req: Request, res: Response) => {
+  try {
+    const result = await providerProfileService.getTopRatedRestaurants();
+
+    res.status(200).json({
+      success: true,
+      message: "Top rated restaurants fetched successfully",
+      data: result,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message || "Failed to fetch top rated restaurants",
+    });
+  }
+};
+
 export const ProviderProfileController = {
   createProfile,
   getMyProfile,
   updateProfile,
-  getPublicProfile
+  getPublicProfile,
+  getAllProfiles,
+  getTopRatedRestaurants
 };
