@@ -90,24 +90,32 @@ const getPublicProfile = async (userId: string) => {
     where: { userId },
     include: {
       user: {
-        select: {
-          name: true,
-          image: true,
-          email: true,
+        include: {
           meals: {
-            where: { isAvailable: true },
             include: {
-              category: true,
+              reviews: true
             }
           },
-          reviews: true
-        },
-      },
-    },
+          _count: {
+            select: { meals: true }
+          }
+        }
+      }
+    }
   });
 
   if (!profile) throw new Error("Provider profile not found");
-  return profile;
+  const allReviews = profile.user.meals.flatMap(meal => meal.reviews || []);
+  const totalRating = allReviews.reduce((sum, rev) => sum + rev.rating, 0);
+  const averageRating = allReviews.length > 0 
+    ? Number((totalRating / allReviews.length).toFixed(1)) 
+    : 0;
+
+  return {
+    ...profile,
+    averageRating,
+    totalReviews: allReviews.length
+  };
 };
 
 const getAllProfiles = async () => {
@@ -135,40 +143,49 @@ const getAllProfiles = async () => {
 
 const getTopRatedRestaurants = async () => {
   const profiles = await prisma.providerProfile.findMany({
-    where: { isVerified: true },
     include: {
       user: {
-        select: {
-          name: true,
-          image: true,
+        include: {
           _count: {
             select: { meals: true }
           },
           meals: {
-            select: {
-              reviews: {
-                select: {
-                  rating: true
-                }
-              }
+            include: {
+              reviews: true 
             }
           }
         }
       }
     }
   });
-  const formattedProfiles = profiles.map(profile => {
-    const allReviews = profile.user.meals.flatMap(meal => meal.reviews);
-    const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
-    const averageRating = allReviews.length > 0 ? (totalRating / allReviews.length).toFixed(1) : "0.0";
+
+  const result = profiles.map(profile => {
+    const allReviews = profile.user.meals?.flatMap(meal => meal.reviews || []) || [];
+    
+    const totalRating = allReviews.reduce((sum, rev) => sum + rev.rating, 0);
+    const averageRating = allReviews.length > 0 
+      ? Number((totalRating / allReviews.length).toFixed(1)) 
+      : 0;
 
     return {
-      ...profile,
-      averageRating: parseFloat(averageRating),
-      totalReviews: allReviews.length
+      id: profile.id,
+      userId: profile.userId,
+      restaurantName: profile.restaurantName,
+      description: profile.description,
+      address: profile.address,
+      logoUrl: profile.logoUrl,
+      averageRating,
+      totalReviews: allReviews.length,
+      user: {
+        name: profile.user.name,
+        image: profile.user.image,
+        _count: profile.user._count
+      }
     };
   });
-  return formattedProfiles.sort((a, b) => b.averageRating - a.averageRating).slice(0, 6);
+  return result
+    .sort((a, b) => b.averageRating - a.averageRating)
+    .slice(0, 10);
 };
 
 export const providerProfileService = {
