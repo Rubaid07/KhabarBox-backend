@@ -93,41 +93,41 @@ const getAllMeal = async ({
 };
 
 const getMealById = async (id: string) => {
-  return prisma.meal.findUnique({
+  const meal = await prisma.meal.findUnique({
     where: { id },
     include: {
       provider: {
         select: {
           id: true,
           name: true,
-          providerProfile: {
-            select: {
-              restaurantName: true,
-              address: true,
-            },
-          },
+          providerProfile: true,
         },
       },
       category: true,
       reviews: {
         include: {
           customer: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
+            select: { id: true, name: true, image: true },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: { createdAt: "desc" },
       },
-      _count: {
-        select: { reviews: true },
-      },
+      _count: { select: { reviews: true } },
     },
   });
+
+  if (!meal) return null;
+
+  const totalRating = meal.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+  const averageRating = meal.reviews.length > 0 
+    ? Number((totalRating / meal.reviews.length).toFixed(1)) 
+    : 0;
+
+  return {
+    ...meal,
+    averageRating,
+    totalReviews: meal.reviews.length,
+  };
 };
 
 const updateMeal = async (id: string, data: Partial<CreateMealInput>) => {

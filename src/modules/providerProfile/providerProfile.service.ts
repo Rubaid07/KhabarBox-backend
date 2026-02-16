@@ -1,9 +1,12 @@
 import { prisma } from "../../lib/prisma";
-import { CreateProviderProfileInput, UpdateProviderProfileInput } from "./providerProfile.types";
+import {
+  CreateProviderProfileInput,
+  UpdateProviderProfileInput,
+} from "./providerProfile.types";
 
 const createProfile = async (
   userId: string,
-  data: CreateProviderProfileInput
+  data: CreateProviderProfileInput,
 ) => {
   // Check if already exists
   const existing = await prisma.providerProfile.findUnique({
@@ -58,7 +61,7 @@ const getMyProfile = async (userId: string) => {
 
 const updateProfile = async (
   userId: string,
-  data: UpdateProviderProfileInput
+  data: UpdateProviderProfileInput,
 ) => {
   const profile = await prisma.providerProfile.findUnique({
     where: { userId },
@@ -93,28 +96,29 @@ const getPublicProfile = async (userId: string) => {
         include: {
           meals: {
             include: {
-              reviews: true
-            }
+              reviews: true,
+            },
           },
           _count: {
-            select: { meals: true }
-          }
-        }
-      }
-    }
+            select: { meals: true },
+          },
+        },
+      },
+    },
   });
 
   if (!profile) throw new Error("Provider profile not found");
-  const allReviews = profile.user.meals.flatMap(meal => meal.reviews || []);
+  const allReviews = profile.user.meals.flatMap((meal) => meal.reviews || []);
   const totalRating = allReviews.reduce((sum, rev) => sum + rev.rating, 0);
-  const averageRating = allReviews.length > 0 
-    ? Number((totalRating / allReviews.length).toFixed(1)) 
-    : 0;
+  const averageRating =
+    allReviews.length > 0
+      ? Number((totalRating / allReviews.length).toFixed(1))
+      : 0;
 
   return {
     ...profile,
     averageRating,
-    totalReviews: allReviews.length
+    totalReviews: allReviews.length,
   };
 };
 
@@ -129,15 +133,15 @@ const getAllProfiles = async () => {
       address: true,
       logoUrl: true,
       user: {
-        select: { 
-          image: true, 
-          name: true, 
+        select: {
+          image: true,
+          name: true,
           _count: {
-            select: {meals: true}
-          }
-        }
-      }
-    }
+            select: { meals: true },
+          },
+        },
+      },
+    },
   });
 };
 
@@ -147,25 +151,31 @@ const getTopRatedRestaurants = async () => {
       user: {
         include: {
           _count: {
-            select: { meals: true }
+            select: {
+              meals: {
+                where: { isAvailable: true },
+              },
+            },
           },
           meals: {
             include: {
-              reviews: true 
-            }
-          }
-        }
-      }
-    }
+              reviews: true,
+            },
+          },
+        },
+      },
+    },
   });
 
-  const result = profiles.map(profile => {
-    const allReviews = profile.user.meals?.flatMap(meal => meal.reviews || []) || [];
-    
+  const result = profiles.map((profile) => {
+    const allReviews =
+      profile.user.meals?.flatMap((meal) => meal.reviews || []) || [];
+
     const totalRating = allReviews.reduce((sum, rev) => sum + rev.rating, 0);
-    const averageRating = allReviews.length > 0 
-      ? Number((totalRating / allReviews.length).toFixed(1)) 
-      : 0;
+    const averageRating =
+      allReviews.length > 0
+        ? Number((totalRating / allReviews.length).toFixed(1))
+        : 0;
 
     return {
       id: profile.id,
@@ -179,13 +189,11 @@ const getTopRatedRestaurants = async () => {
       user: {
         name: profile.user.name,
         image: profile.user.image,
-        _count: profile.user._count
-      }
+        _count: profile.user._count,
+      },
     };
   });
-  return result
-    .sort((a, b) => b.averageRating - a.averageRating)
-    .slice(0, 10);
+  return result.sort((a, b) => b.averageRating - a.averageRating).slice(0, 10);
 };
 
 export const providerProfileService = {
@@ -194,5 +202,5 @@ export const providerProfileService = {
   updateProfile,
   getPublicProfile,
   getAllProfiles,
-  getTopRatedRestaurants
+  getTopRatedRestaurants,
 };
