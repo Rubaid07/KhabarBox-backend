@@ -19,13 +19,14 @@ const getAllMeal = async (filters: GetMealFilters) => {
     isAvailable,
     priceRange,
     providerId,
-    categoryId,
+    categoryId,  // Already exists
     page,
     limit,
     skip,
     sortBy,
     sortOrder,
   } = filters;
+  
   const andConditions: MealWhereInput[] = [];
 
   if (search) {
@@ -37,6 +38,12 @@ const getAllMeal = async (filters: GetMealFilters) => {
       ],
     });
   }
+
+  // Category/Cuisine Filter
+  if (categoryId) {
+    andConditions.push({ categoryId });
+  }
+
   if (dietaryTags && dietaryTags.length > 0) {
     andConditions.push({
       dietaryTags: { hasEvery: dietaryTags },
@@ -46,6 +53,7 @@ const getAllMeal = async (filters: GetMealFilters) => {
   if (typeof isAvailable === "boolean") {
     andConditions.push({ isAvailable });
   }
+  
   if (priceRange) {
     const priceCondition: any = {};
     if (priceRange.min !== undefined)
@@ -62,10 +70,6 @@ const getAllMeal = async (filters: GetMealFilters) => {
     andConditions.push({ providerId });
   }
 
-  if (categoryId) {
-    andConditions.push({ categoryId });
-  }
-
   const meal = await prisma.meal.findMany({
     where: {
       AND: andConditions,
@@ -74,6 +78,16 @@ const getAllMeal = async (filters: GetMealFilters) => {
     take: limit,
     orderBy: {
       [sortBy]: sortOrder,
+    },
+    include: {
+      category: true,  // Include category info
+      provider: {
+        include: {
+          providerProfile: {
+            select: { restaurantName: true },
+          },
+        },
+      },
     },
   });
 

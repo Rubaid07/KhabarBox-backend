@@ -24,9 +24,10 @@ const createMeal = async (req: Request, res: Response) => {
 
 const getAllMeal = async (req: Request, res: Response) => {
   try {
-    const { search, minPrice, maxPrice } = req.query;
+    const { search, minPrice, maxPrice, categoryId } = req.query;
 
     const searchString = typeof search === "string" ? search : undefined;
+    const categoryIdString = typeof categoryId === "string" ? categoryId : undefined;
 
     const dietaryTags = req.query.dietaryTags
       ? (req.query.dietaryTags as string).split(",")
@@ -52,19 +53,17 @@ const getAllMeal = async (req: Request, res: Response) => {
         ? req.query.providerId
         : undefined;
 
-    const categoryId = req.query.categoryId as string | undefined;
-
     const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(
       req.query,
     );
 
     const filters = {
       ...(searchString && { search: searchString }),
+      ...(categoryIdString && { categoryId: categoryIdString }),
       ...(dietaryTags.length > 0 && { dietaryTags }),
       ...(typeof isAvailable === "boolean" && { isAvailable }),
       ...(priceRange && { priceRange }),
       ...(providerId && { providerId }),
-      ...(categoryId && { categoryId }),
       page,
       limit,
       skip,
