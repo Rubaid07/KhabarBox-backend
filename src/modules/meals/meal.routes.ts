@@ -9,6 +9,8 @@ router.get(
    MealController.getAllMeal
 )
 
+router.get("/suggestions", MealController.getSuggestions);
+
 router.get(
    "/:mealId",
    MealController.getMealById

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { mealService } from "./meal.service";
+import { SuggestionService } from "./suggestion.service";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
 const createMeal = async (req: Request, res: Response) => {
@@ -78,6 +79,23 @@ const getAllMeal = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch meal",
+      details: e,
+    });
+  }
+};
+
+// NEW: Suggestions endpoint
+const getSuggestions = async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query;
+    const searchString = typeof query === "string" ? query : "";
+
+    const result = await SuggestionService.getSuggestions(searchString);
+    res.status(200).json(result);
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch suggestions",
       details: e,
     });
   }
@@ -173,6 +191,7 @@ const deleteMeal = async (req: Request, res: Response) => {
 export const MealController = {
   createMeal,
   getAllMeal,
+  getSuggestions,
   getMealById,
   updateMeal,
   deleteMeal

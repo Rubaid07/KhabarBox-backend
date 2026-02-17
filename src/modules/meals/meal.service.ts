@@ -12,19 +12,20 @@ const createMela = async (data: CreateMealInput, userId: string) => {
   return result;
 };
 
-const getAllMeal = async ({
-  search,
-  dietaryTags = [],
-  isAvailable,
-  priceRange,
-  providerId,
-  categoryId,
-  page,
-  limit,
-  skip,
-  sortBy,
-  sortOrder,
-}: GetMealFilters) => {
+const getAllMeal = async (filters: GetMealFilters) => {
+  const {
+    search,
+    dietaryTags,
+    isAvailable,
+    priceRange,
+    providerId,
+    categoryId,
+    page,
+    limit,
+    skip,
+    sortBy,
+    sortOrder,
+  } = filters;
   const andConditions: MealWhereInput[] = [];
 
   if (search) {
@@ -36,8 +37,7 @@ const getAllMeal = async ({
       ],
     });
   }
-
-  if (dietaryTags.length > 0) {
+  if (dietaryTags && dietaryTags.length > 0) {
     andConditions.push({
       dietaryTags: { hasEvery: dietaryTags },
     });
@@ -46,14 +46,16 @@ const getAllMeal = async ({
   if (typeof isAvailable === "boolean") {
     andConditions.push({ isAvailable });
   }
-
   if (priceRange) {
-    andConditions.push({
-      price: {
-        ...(priceRange.min !== undefined && { gte: priceRange.min }),
-        ...(priceRange.max !== undefined && { lte: priceRange.max }),
-      },
-    });
+    const priceCondition: any = {};
+    if (priceRange.min !== undefined)
+      priceCondition.gte = Number(priceRange.min);
+    if (priceRange.max !== undefined)
+      priceCondition.lte = Number(priceRange.max);
+
+    if (Object.keys(priceCondition).length > 0) {
+      andConditions.push({ price: priceCondition });
+    }
   }
 
   if (providerId) {
@@ -119,9 +121,10 @@ const getMealById = async (id: string) => {
   if (!meal) return null;
 
   const totalRating = meal.reviews.reduce((sum, rev) => sum + rev.rating, 0);
-  const averageRating = meal.reviews.length > 0 
-    ? Number((totalRating / meal.reviews.length).toFixed(1)) 
-    : 0;
+  const averageRating =
+    meal.reviews.length > 0
+      ? Number((totalRating / meal.reviews.length).toFixed(1))
+      : 0;
 
   return {
     ...meal,
@@ -151,5 +154,5 @@ export const mealService = {
   getAllMeal,
   getMealById,
   updateMeal,
-  deleteMeal
+  deleteMeal,
 };
