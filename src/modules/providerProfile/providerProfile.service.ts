@@ -123,15 +123,9 @@ const getPublicProfile = async (userId: string) => {
 };
 
 const getAllProfiles = async () => {
-  return prisma.providerProfile.findMany({
+  const profiles = await prisma.providerProfile.findMany({
     take: 8,
-    select: {
-      id: true,
-      userId: true,
-      restaurantName: true,
-      description: true,
-      address: true,
-      logoUrl: true,
+    include: {
       user: {
         select: {
           image: true,
@@ -142,6 +136,72 @@ const getAllProfiles = async () => {
         },
       },
     },
+  });
+
+  const userIds = profiles.map(p => p.userId);
+  
+  const ratingsData = await prisma.review.groupBy({
+    by: ['mealId'],
+    _avg: {
+      rating: true,
+    },
+    _count: {
+      rating: true,
+    },
+    where: {
+      meal: {
+        providerId: {
+          in: userIds,
+        },
+      },
+    },
+  });
+
+  const meals = await prisma.meal.findMany({
+    where: {
+      providerId: {
+        in: userIds,
+      },
+    },
+    select: {
+      id: true,
+      providerId: true,
+    },
+  });
+
+  const providerStats = new Map();
+  
+  ratingsData.forEach((r) => {
+    const meal = meals.find(m => m.id === r.mealId);
+    if (meal) {
+      const current = providerStats.get(meal.providerId) || { total: 0, count: 0, sum: 0 };
+      current.count += r._count.rating;
+      current.sum += (r._avg.rating || 0) * r._count.rating;
+      providerStats.set(meal.providerId, current);
+    }
+  });
+
+  return profiles.map((profile) => {
+    const stats = providerStats.get(profile.userId);
+    const averageRating = stats ? Number((stats.sum / stats.count).toFixed(1)) : 0;
+    const totalReviews = stats ? stats.count : 0;
+
+    return {
+      id: profile.id,
+      userId: profile.userId,
+      restaurantName: profile.restaurantName,
+      description: profile.description,
+      address: profile.address,
+      logoUrl: profile.logoUrl,
+      isVerified: true,
+      averageRating,
+      totalReviews,
+      user: {
+        name: profile.user.name,
+        image: profile.user.image,
+        _count: profile.user._count,
+      },
+    };
   });
 };
 
