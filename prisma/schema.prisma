@@ -103,6 +103,8 @@ model Orders {
   id              String        @id @default(uuid())
   totalAmount     Decimal       @db.Decimal(10, 2)
   deliveryAddress String
+  phone           String?
+  notes           String?
   status          OrderStatus   @default(PLACED)
   paymentMethod   PaymentMethod @default(COD)
 
@@ -173,13 +175,13 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  role             String?          @default("CUSTOMER")
-  phone            String?
-  status           String?          @default("ACTIVE")
+  role            String?          @default("CUSTOMER")
+  phone           String?
+  status          String?          @default("ACTIVE")
   providerProfile ProviderProfile?
-  meals            Meal[]
-  cartItems        CartItem[]
-  reviews          Review[]
+  meals           Meal[]
+  cartItems       CartItem[]
+  reviews         Review[]
 
   customerOrders Orders[] @relation("CustomerOrders")
   providerOrders Orders[] @relation("ProviderOrders")

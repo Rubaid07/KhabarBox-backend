@@ -2,12 +2,12 @@ import { Router } from "express";
 import auth, { UserRole } from "../../middleware/auth";
 import { OrderController } from "./order.controller";
 
-const router = Router()
+const router = Router();
 
-router.get(
-    "/:id", 
-    auth(),
-    OrderController.getOrderById
+router.post(
+    "/", 
+    auth(UserRole.CUSTOMER), 
+    OrderController.placeOrder
 );
 
 router.get(
@@ -22,6 +22,12 @@ router.get(
     OrderController.getProviderOrders
 );
 
+router.get(
+    "/:id", 
+    auth(), 
+    OrderController.getOrderById
+);
+
 router.patch(
     "/:id/status", 
     auth(UserRole.PROVIDER), 
@@ -34,12 +40,4 @@ router.patch(
     OrderController.cancelOrder
 );
 
-router.post(
-    "/", 
-    auth(UserRole.CUSTOMER), 
-    OrderController.placeOrder
-);
-
-
-
-export const orderRouter = router
+export const orderRouter = router;

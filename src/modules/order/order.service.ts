@@ -1,13 +1,16 @@
 import { OrderStatus } from "../../../generated/prisma/enums";
-import { OrdersCreateInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
 import { UserRole } from "../../middleware/auth";
 
 const placeOrder = async (
   customerId: string,
-  data: Pick<OrdersCreateInput, "deliveryAddress">
+  data: {
+    deliveryAddress: string;
+    phone?: string;
+    notes?: string;
+  },
 ) => {
-  const { deliveryAddress } = data;
+  const { deliveryAddress, phone, notes } = data;
 
   const cartItems = await prisma.cartItem.findMany({
     where: { customerId },
@@ -19,12 +22,15 @@ const placeOrder = async (
   }
 
   // group by provider
-  const itemsByProvider = cartItems.reduce((acc, item) => {
-    const providerId = item.meal.providerId;
-    if (!acc[providerId]) acc[providerId] = [];
-    acc[providerId].push(item);
-    return acc;
-  }, {} as Record<string, typeof cartItems>);
+  const itemsByProvider = cartItems.reduce(
+    (acc, item) => {
+      const providerId = item.meal.providerId;
+      if (!acc[providerId]) acc[providerId] = [];
+      acc[providerId].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof cartItems>,
+  );
 
   const orders = [];
 
@@ -32,7 +38,7 @@ const placeOrder = async (
   for (const [providerId, items] of Object.entries(itemsByProvider)) {
     const totalAmount = items.reduce(
       (sum, item) => sum + Number(item.meal.price) * item.quantity,
-      0
+      0,
     );
 
     const order = await prisma.orders.create({
@@ -41,6 +47,8 @@ const placeOrder = async (
         providerId,
         totalAmount,
         deliveryAddress,
+        phone: phone ? String(phone) : "",
+        notes: notes || "",
         status: "PLACED",
         paymentMethod: "COD",
         orderItems: {
@@ -74,13 +82,13 @@ const getMyOrders = async (customerId: string) => {
     where: { customerId },
     include: {
       orderItems: {
-        include: { 
-          meal: { 
-            select: { 
-              name: true, 
-              imageUrl: true 
-            } 
-          } 
+        include: {
+          meal: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
         },
       },
       provider: {
@@ -112,7 +120,11 @@ const getProviderOrders = async (providerId: string) => {
   });
 };
 
-const getOrderById = async (orderId: string, userId: string, userRole: string) => {
+const getOrderById = async (
+  orderId: string,
+  userId: string,
+  userRole: string,
+) => {
   const order = await prisma.orders.findUnique({
     where: { id: orderId },
     include: {
@@ -142,7 +154,7 @@ const getOrderById = async (orderId: string, userId: string, userRole: string) =
 const updateStatus = async (
   orderId: string,
   providerId: string,
-  newStatus: OrderStatus
+  newStatus: OrderStatus,
 ) => {
   const order = await prisma.orders.findFirst({
     where: { id: orderId, providerId },
@@ -159,7 +171,7 @@ const updateStatus = async (
   };
 
   const allowed = transitions[order.status] ?? [];
-  
+
   if (!allowed.includes(newStatus)) {
     throw new Error(`Cannot change from ${order.status} to ${newStatus}`);
   }
@@ -188,10 +200,10 @@ const cancelOrder = async (orderId: string, customerId: string) => {
 };
 
 export const orderService = {
-    placeOrder,
-    getMyOrders,
-    getProviderOrders,
-    getOrderById,
-    updateStatus,
-    cancelOrder
-}
+  placeOrder,
+  getMyOrders,
+  getProviderOrders,
+  getOrderById,
+  updateStatus,
+  cancelOrder,
+};

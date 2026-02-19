@@ -6,10 +6,12 @@ const placeOrder = async (req: Request, res: Response) => {
   try {
     const user = req.user!;
     
-    const { deliveryAddress } = req.body;
+    const { deliveryAddress, phone, notes } = req.body;
 
     const result = await orderService.placeOrder(user.id, {
       deliveryAddress,
+      phone, 
+      notes
     });
 
     res.status(201).json({
