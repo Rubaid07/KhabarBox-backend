@@ -26,3 +26,22 @@ export type GetMealFilters = {
   sortBy: string;
   sortOrder: "asc" | "desc";
 };
+export interface SuggestionResult {
+  meals: Array<{
+    id: string;
+    name: string;
+    imageUrl?: string | undefined;       
+    restaurantName?: string | undefined;
+    price?: number;
+  }>;
+  tags: string[];
+  restaurants: Array<{
+    id: string;
+    name: string;
+    logoUrl?: string | undefined;
+  }>;
+  categories?: Array<{
+    id: string;
+    name: string;
+  }>;
+}

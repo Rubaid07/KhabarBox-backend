@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { mealService } from "./meal.service";
-import { SuggestionService } from "./suggestion.service";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
 const createMeal = async (req: Request, res: Response) => {
@@ -83,13 +82,13 @@ const getAllMeal = async (req: Request, res: Response) => {
   }
 };
 
-// NEW: Suggestions endpoint
+// Suggestions 
 const getSuggestions = async (req: Request, res: Response) => {
   try {
     const { query } = req.query;
     const searchString = typeof query === "string" ? query : "";
 
-    const result = await SuggestionService.getSuggestions(searchString);
+    const result = await mealService.getSuggestions(searchString);
     res.status(200).json(result);
   } catch (e) {
     res.status(500).json({

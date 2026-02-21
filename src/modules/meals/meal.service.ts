@@ -1,6 +1,10 @@
 import { MealWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
-import { CreateMealInput, GetMealFilters } from "./meal.types";
+import {
+  CreateMealInput,
+  GetMealFilters,
+  SuggestionResult,
+} from "./meal.types";
 
 const createMela = async (data: CreateMealInput, userId: string) => {
   const result = await prisma.meal.create({
@@ -19,27 +23,35 @@ const getAllMeal = async (filters: GetMealFilters) => {
     isAvailable,
     priceRange,
     providerId,
-    categoryId,  // Already exists
+    categoryId,
     page,
     limit,
     skip,
     sortBy,
     sortOrder,
   } = filters;
-  
+
   const andConditions: MealWhereInput[] = [];
 
+  // ✅ Enhanced search: name, description, tags, AND restaurant name
   if (search) {
     andConditions.push({
       OR: [
         { name: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
         { dietaryTags: { has: search } },
+        // ✅ Search by restaurant name through provider -> providerProfile
+        {
+          provider: {
+            providerProfile: {
+              restaurantName: { contains: search, mode: "insensitive" },
+            },
+          },
+        },
       ],
     });
   }
 
-  // Category/Cuisine Filter
   if (categoryId) {
     andConditions.push({ categoryId });
   }
@@ -53,7 +65,7 @@ const getAllMeal = async (filters: GetMealFilters) => {
   if (typeof isAvailable === "boolean") {
     andConditions.push({ isAvailable });
   }
-  
+
   if (priceRange) {
     const priceCondition: any = {};
     if (priceRange.min !== undefined)
@@ -80,11 +92,11 @@ const getAllMeal = async (filters: GetMealFilters) => {
       [sortBy]: sortOrder,
     },
     include: {
-      category: true,  // Include category info
+      category: true,
       provider: {
         include: {
           providerProfile: {
-            select: { restaurantName: true },
+            select: { restaurantName: true, logoUrl: true },
           },
         },
       },
@@ -163,10 +175,111 @@ const deleteMeal = async (id: string) => {
   });
 };
 
+const getSuggestions = async (query: string): Promise<SuggestionResult> => {
+  if (!query || query.length < 2) {
+    return { meals: [], tags: [], restaurants: [] };
+  }
+
+  const searchLower = query.toLowerCase();
+
+  const [meals, allMealsForTags, restaurants, categories] = await Promise.all([
+    prisma.meal.findMany({
+      where: {
+        isAvailable: true,
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+          { dietaryTags: { hasSome: [query] } },
+          {
+            provider: {
+              providerProfile: {
+                restaurantName: { contains: query, mode: "insensitive" },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        provider: {
+          include: {
+            providerProfile: {
+              select: { restaurantName: true },
+            },
+          },
+        },
+      },
+      take: 5,
+      orderBy: { createdAt: "desc" },
+    }),
+
+    prisma.meal.findMany({
+      where: { isAvailable: true },
+      select: { dietaryTags: true },
+      take: 100,
+    }),
+
+    prisma.user.findMany({
+      where: {
+        role: "PROVIDER",
+        providerProfile: {
+          OR: [
+            { restaurantName: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } },
+          ],
+        },
+      },
+      include: {
+        providerProfile: {
+          select: { restaurantName: true, logoUrl: true },
+        },
+      },
+      take: 3,
+    }),
+
+    prisma.category.findMany({
+      where: {
+        name: { contains: query, mode: "insensitive" },
+      },
+      select: { id: true, name: true },
+      take: 3,
+    }),
+  ]);
+
+  const tagSet = new Set<string>();
+  allMealsForTags.forEach((meal) => {
+    meal.dietaryTags?.forEach((tag) => {
+      if (tag.toLowerCase().includes(searchLower)) {
+        tagSet.add(tag);
+      }
+    });
+  });
+
+  return {
+    meals: meals.map((m) => ({
+      id: m.id,
+      name: m.name,
+      imageUrl: m.imageUrl ?? undefined,
+      restaurantName: m.provider?.providerProfile?.restaurantName ?? undefined,
+      price: Number(m.price),
+    })),
+    tags: Array.from(tagSet).slice(0, 8),
+    restaurants: restaurants.map((r) => ({
+      id: r.id,
+      name: r.providerProfile?.restaurantName ?? "Unknown",
+      logoUrl: r.providerProfile?.logoUrl ?? undefined,
+    })),
+    categories: categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+    })),
+  };
+};
+
 export const mealService = {
   createMela,
   getAllMeal,
   getMealById,
   updateMeal,
   deleteMeal,
+  getSuggestions,
 };
