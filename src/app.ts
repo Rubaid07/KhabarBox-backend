@@ -10,6 +10,7 @@ import { providerProfileRoutes } from "./modules/providerProfile/providerProfile
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { categoryRoutes } from "./modules/category/category.routes";
 import { providerDashboardRoutes } from "./modules/providerDashboard/providerDashboard.routes";
+import { userRouter } from "./modules/user/user.routes";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/provider/profile", providerProfileRoutes)
 app.use("/admin", adminRoutes)
 app.use("/categories", categoryRoutes);
 app.use("/provider/dashboard", providerDashboardRoutes);
+app.use("/users", userRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello world");
