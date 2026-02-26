@@ -39,8 +39,7 @@ const getDashboardStats = async () => {
 };
 
 const getAllUsers = async (options: any) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationSortingHelper(options);
+  const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(options);
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -51,6 +50,14 @@ const getAllUsers = async (options: any) => {
         role: true,
         status: true,
         createdAt: true,
+        providerProfile: {
+          select: {
+            restaurantName: true,
+            address: true,
+            logoUrl: true,
+            isVerified: true,
+          },
+        },
       },
       skip,
       take: limit,

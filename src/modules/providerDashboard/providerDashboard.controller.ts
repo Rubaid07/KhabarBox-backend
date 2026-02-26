@@ -1,11 +1,26 @@
 import { Request, Response } from "express";
 import { providerDashboardService } from "./providerDashboard.service";
+import { UserRole } from "../../middleware/auth";
+import { prisma } from "../../lib/prisma";
 
 const getStats = async (req: Request, res: Response) => {
   try {
     const user = req.user!;
 
-    const stats = await providerDashboardService.getStats(user.id);
+    const targetProviderId = req.headers['x-provider-id'] as string || user.id;
+    if (user.role === UserRole.ADMIN && targetProviderId !== user.id) {
+      const provider = await prisma.user.findFirst({
+        where: { id: targetProviderId, role: UserRole.PROVIDER }
+      });
+      if (!provider) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Provider not found" 
+        });
+      }
+    }
+
+    const stats = await providerDashboardService.getStats(targetProviderId);
 
     res.status(200).json({
       success: true,

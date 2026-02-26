@@ -6,31 +6,31 @@ const router = Router();
 
 router.get(
     "/stats", 
-    auth(UserRole.PROVIDER),
+    auth(UserRole.PROVIDER, UserRole.ADMIN),
     ProviderDashboardController.getStats
 );
 
 router.get(
     "/orders", 
-    auth(UserRole.PROVIDER),
+    auth(UserRole.PROVIDER, UserRole.ADMIN),
     ProviderDashboardController.getRecentOrders
 );
 
 router.get(
     "/popular-meals", 
-    auth(UserRole.PROVIDER),
+    auth(UserRole.PROVIDER, UserRole.ADMIN),
     ProviderDashboardController.getPopularMeals
 );
 
 router.get(
     "/weekly-chart", 
-    auth(UserRole.PROVIDER),
+    auth(UserRole.PROVIDER, UserRole.ADMIN),
     ProviderDashboardController.getWeeklyChart
 );
 
 router.get(
     "/meals", 
-    auth(UserRole.PROVIDER),
+    auth(UserRole.PROVIDER, UserRole.ADMIN),
     ProviderDashboardController.getMyMeals
 );
 
