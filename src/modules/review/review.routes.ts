@@ -22,13 +22,13 @@ router.post(
 
 router.patch(
     "/:reviewId", 
-    auth(UserRole.CUSTOMER),
+    auth(UserRole.CUSTOMER, UserRole.ADMIN),
     ReviewController.updateReview
 )
 
 router.delete(
     "/:reviewId", 
-    auth(UserRole.CUSTOMER),
+    auth(UserRole.CUSTOMER, UserRole.ADMIN),
     ReviewController.deleteReview
 )
 

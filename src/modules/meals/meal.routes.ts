@@ -24,13 +24,13 @@ router.post(
 
 router.patch(
    "/:mealId", 
-   auth(UserRole.PROVIDER), 
+   auth(UserRole.PROVIDER, UserRole.ADMIN), 
    MealController.updateMeal
 );
 
 router.delete(
    "/:mealId", 
-   auth(UserRole.PROVIDER), 
+   auth(UserRole.PROVIDER, UserRole.ADMIN), 
    MealController.deleteMeal
 );
 

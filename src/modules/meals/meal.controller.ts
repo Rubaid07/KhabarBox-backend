@@ -125,14 +125,16 @@ const updateMeal = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
-    // Check if meal belongs to this provider
     const existingMeal = await mealService.getMealById(mealId as string);
 
     if (!existingMeal) {
       return res.status(404).json({ success: false, error: "Meal not found" });
     }
 
-    if (existingMeal.providerId !== user.id) {
+    const isOwner = existingMeal.providerId === user.id;
+    const isAdmin = user.role === "ADMIN";
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, error: "Not your meal" });
     }
 
