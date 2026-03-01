@@ -130,8 +130,51 @@ const cancelOrder = async (req: Request, res: Response) => {
   }
 };
 
+const getRevenueTrend = async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const data = await adminService.getRevenueTrend(days);
+    res.json({ success: true, data });
+  } catch (e: any) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+const getRecentOrders = async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const data = await adminService.getRecentOrders(limit);
+    res.json({ success: true, data });
+  } catch (e: any) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+const getTopProviders = async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 5;
+    const data = await adminService.getTopProviders(limit);
+    res.json({ success: true, data });
+  } catch (e: any) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+const getOrderStatusBreakdown = async (req: Request, res: Response) => {
+  try {
+    const data = await adminService.getOrderStatusBreakdown();
+    res.json({ success: true, data });
+  } catch (e: any) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
 export const AdminController = {
   getDashboardStats,
+  getRevenueTrend,        // নতুন
+  getRecentOrders,        // নতুন
+  getTopProviders,        // নতুন
+  getOrderStatusBreakdown,
   getAllUsers,
   getAllOrders,
   suspendUser,

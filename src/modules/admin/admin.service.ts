@@ -8,7 +8,7 @@ const getDashboardStats = async () => {
     totalProviders,
     totalCustomers,
     totalOrders,
-    totalRevenue,
+    totalRevenueAgg,
     pendingOrders,
   ] = await Promise.all([
     prisma.user.count(),
@@ -34,7 +34,7 @@ const getDashboardStats = async () => {
       total: totalOrders,
       pending: pendingOrders,
     },
-    revenue: totalRevenue._sum.totalAmount || 0,
+    revenue: Number(totalRevenueAgg._sum.totalAmount) || 0,
   };
 };
 
@@ -78,8 +78,7 @@ const getAllUsers = async (options: any) => {
 };
 
 const getAllOrders = async (options: any) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationSortingHelper(options);
+  const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(options);
 
   const [orders, total] = await Promise.all([
     prisma.orders.findMany({
@@ -198,8 +197,151 @@ const cancelOrder = async (orderId: string) => {
   });
 };
 
+const getRevenueTrend = async (days: number = 30) => {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  const orders = await prisma.orders.findMany({
+    where: {
+      createdAt: { gte: startDate },
+      status: { not: "CANCELLED" },
+    },
+    select: {
+      createdAt: true,
+      totalAmount: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const grouped = orders.reduce((acc: Record<string, { revenue: number, count: number }>, order) => {
+    const date = order.createdAt.toISOString().split("T")[0];
+    
+    if (!date) return acc;
+
+    const amount = Number(order.totalAmount) || 0;
+    
+    if (!acc[date]) {
+      acc[date] = { revenue: 0, count: 0 };
+    }
+    
+    acc[date].revenue += amount;
+    acc[date].count += 1;
+    return acc;
+  }, {});
+
+  const result = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0] as string;
+    
+    const dayData = grouped[dateStr] || { revenue: 0, count: 0 };
+    
+    result.push({
+      date: dateStr,
+      revenue: dayData.revenue,
+      orders: dayData.count,
+    });
+  }
+
+  return result;
+};
+
+const getRecentOrders = async (limit: number = 10) => {
+  const orders = await prisma.orders.findMany({
+    take: limit,
+    orderBy: { createdAt: "desc" },
+    include: {
+      customer: {
+        select: { name: true, email: true },
+      },
+      provider: {
+        include: {
+          providerProfile: {
+            select: { restaurantName: true },
+          },
+        },
+      },
+    },
+  });
+
+  return orders.map(order => ({
+    ...order,
+    totalAmount: Number(order.totalAmount) || 0,
+  }));
+};
+
+const getTopProviders = async (limit: number = 5) => {
+  const providers = await prisma.orders.groupBy({
+    by: ["providerId"],
+    where: {
+      status: { not: "CANCELLED" },
+    },
+    _sum: { totalAmount: true },
+    _count: { id: true },
+    orderBy: { _sum: { totalAmount: "desc" } },
+    take: limit,
+  });
+
+  const providerIds = providers.map((p) => p.providerId);
+  const providerDetails = await prisma.user.findMany({
+    where: { id: { in: providerIds } },
+    include: {
+      providerProfile: {
+        select: { restaurantName: true, logoUrl: true },
+      },
+    },
+  });
+
+  return providers.map((p) => {
+    const detail = providerDetails.find((d) => d.id === p.providerId);
+    return {
+      id: p.providerId,
+      restaurantName: detail?.providerProfile?.restaurantName || "Unknown",
+      logoUrl: detail?.providerProfile?.logoUrl,
+      totalRevenue: Number(p._sum.totalAmount) || 0,
+      totalOrders: p._count.id,
+    };
+  });
+};
+
+const getOrderStatusBreakdown = async () => {
+  const statuses = ["PLACED", "PREPARING", "READY", "DELIVERED", "CANCELLED"] as const;
+  
+  const counts = await Promise.all(
+    statuses.map((status) =>
+      prisma.orders.count({ 
+        where: { 
+          status: status as any
+        } 
+      })
+    )
+  );
+
+  return statuses.map((status, index) => ({
+    name: status,
+    value: counts[index],
+    color: getStatusColor(status),
+  }));
+};
+
+const getStatusColor = (status: string) => {
+  const colors: { [key: string]: string } = {
+    PLACED: "#3b82f6",
+    PREPARING: "#f59e0b",
+    READY: "#8b5cf6",
+    DELIVERED: "#10b981",
+    CANCELLED: "#ef4444",
+  };
+  return colors[status] || "#6b7280";
+};
+
 export const adminService = {
   getDashboardStats,
+  getRevenueTrend,
+  getRecentOrders,
+  getTopProviders,
+  getOrderStatusBreakdown,
   getAllUsers,
   getAllOrders,
   suspendUser,

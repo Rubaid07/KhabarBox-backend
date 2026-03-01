@@ -5,6 +5,30 @@ import { AdminController } from "./admin.controller";
 const router = Router();
 
 router.get(
+  "/stats/revenue-trend",
+  auth(UserRole.ADMIN),
+  AdminController.getRevenueTrend
+);
+
+router.get(
+  "/stats/recent-orders",
+  auth(UserRole.ADMIN),
+  AdminController.getRecentOrders
+);
+
+router.get(
+  "/stats/top-providers",
+  auth(UserRole.ADMIN),
+  AdminController.getTopProviders
+);
+
+router.get(
+  "/stats/order-status",
+  auth(UserRole.ADMIN),
+  AdminController.getOrderStatusBreakdown
+);
+
+router.get(
     "/stats", 
     auth(UserRole.ADMIN), 
     AdminController.getDashboardStats
