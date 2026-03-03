@@ -11,6 +11,7 @@ import { adminRoutes } from "./modules/admin/admin.routes";
 import { categoryRoutes } from "./modules/category/category.routes";
 import { providerDashboardRoutes } from "./modules/providerDashboard/providerDashboard.routes";
 import { userRouter } from "./modules/user/user.routes";
+import { notFound } from "./middleware/notFound";
 
 const app = express();
 
@@ -36,5 +37,6 @@ app.use("/users", userRouter);
 app.get("/", (req, res) => {
   res.send("Hello world");
 });
+app.use(notFound)
 
 export default app;

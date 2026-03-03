@@ -1,0 +1,19 @@
+model Review {
+    id      String  @id @default(uuid())
+    rating  Int     @db.SmallInt
+    comment String? @db.Text
+
+    createdAt DateTime @default(now())
+
+    mealId String
+    meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+    customerId String
+    customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+    @@unique([mealId, customerId])
+    @@index([mealId])
+    @@index([customerId])
+    @@index([rating])
+    @@map("reviews")
+}
