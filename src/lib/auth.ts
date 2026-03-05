@@ -14,14 +14,26 @@ const transporter = nodemailer.createTransport({
 });
 
 export const auth = betterAuth({
+  baseURL: process.env.NODE_ENV === "production" 
+    ? "https://khabarbox-backend.vercel.app" 
+    : "http://localhost:5000",
+
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+
   advanced: {
-    useSecureCookies: true,
-    crossSiteCookies: true,
+    // লোকালহোস্টে HTTPS নেই, তাই এখানে ডাইনামিক হওয়া জরুরি
+    useSecureCookies: process.env.NODE_ENV === "production",
+    crossSiteCookies: true, // Cross-domain (Vercel) এর জন্য এটি মাস্ট
   },
-  trustedOrigins: ["https://khabarbox.vercel.app", "https://khabarbox-backend.vercel.app"],
+
+  trustedOrigins: [
+    "https://khabarbox.vercel.app",
+    "https://khabarbox-backend.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5000"
+  ],
   user: {
     additionalFields: {
       role: { 
