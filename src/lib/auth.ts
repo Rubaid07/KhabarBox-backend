@@ -21,7 +21,7 @@ export const auth = betterAuth({
     useSecureCookies: true,
     crossSiteCookies: true,
   },
-  trustedOrigins: [process.env.APP_URL!, process.env.BETTER_AUTH_URL!],
+  trustedOrigins: ["https://khabarbox.vercel.app", "https://khabarbox-backend.vercel.app"],
   user: {
     additionalFields: {
       role: { 
