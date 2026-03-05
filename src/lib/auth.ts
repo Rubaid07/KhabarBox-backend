@@ -20,18 +20,39 @@ export const auth = betterAuth({
   trustedOrigins: [process.env.APP_URL!],
   user: {
     additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "CUSTOMER",
+      role: { 
+        type: "string", 
+        input: true 
       },
-      phone: {
-        type: "string",
-        required: false,
+      phone: { 
+        type: "string", 
+        input: true 
       },
-      status: {
-        type: "string",
-        defaultValue: "ACTIVE",
-        required: false,
+      restaurantName: { 
+        type: "string", 
+        input: true 
+      },
+      address: { 
+        type: "string", 
+        input: true 
+      },       
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          if (user.role === "PROVIDER") {
+            await prisma.providerProfile.create({
+              data: {
+                userId: user.id,
+                restaurantName: (user as any).restaurantName || "",
+                address: (user as any).address || "",
+                description: "",
+              },
+            });
+          }
+        },
       },
     },
   },
@@ -346,8 +367,6 @@ export const auth = betterAuth({
 </body>
 </html>`,
         });
-
-        console.log("Message sent:", info.messageId);
       } catch (err) {
         console.error(err);
         throw err;

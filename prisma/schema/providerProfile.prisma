@@ -1,7 +1,7 @@
 model ProviderProfile {
     id             String  @id @default(uuid())
     restaurantName String  @db.VarChar(225)
-    description    String  @db.Text
+    description    String?  @db.Text
     address        String  @db.Text
     logoUrl        String?
     openingHours   String?

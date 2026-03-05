@@ -10,6 +10,8 @@ model User {
     accounts      Account[]
 
     role            String?          @default("CUSTOMER")
+    restaurantName  String?          @db.VarChar(225)
+    address         String?          @db.Text
     phone           String?
     status          String?          @default("ACTIVE")
     providerProfile ProviderProfile?

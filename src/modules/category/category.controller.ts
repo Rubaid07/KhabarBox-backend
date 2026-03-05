@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { categoryService } from "./category.service";
+import { GetAllCategoriesParams } from "./category.types";
 
 const createCategory = async (req: Request, res: Response) => {
   try {
@@ -19,11 +20,27 @@ const createCategory = async (req: Request, res: Response) => {
 
 const getAllCategories = async (req: Request, res: Response) => {
   try {
-    const result = await categoryService.getAllCategories();
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
+    const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    const search = req.query.search as string | undefined;
+    const result = await categoryService.getAllCategories({
+      page,
+      limit,
+      search,
+    } as GetAllCategoriesParams);
+    if (page && limit) {
+      const paginatedResult = result as { data: any[]; meta: any };
+      res.status(200).json({
+        success: true,
+        data: paginatedResult.data,
+        meta: paginatedResult.meta,
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    }
   } catch (e: any) {
     res.status(500).json({
       success: false,

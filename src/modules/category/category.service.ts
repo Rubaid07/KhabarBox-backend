@@ -1,6 +1,11 @@
 import { CategoryCreateInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
 
+interface GetAllCategoriesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
 
 const createCategory = async (data: CategoryCreateInput) => {
   const existing = await prisma.category.findUnique({
@@ -16,8 +21,53 @@ const createCategory = async (data: CategoryCreateInput) => {
   });
 };
 
-const getAllCategories = async () => {
+const getAllCategories = async (params: GetAllCategoriesParams = {}) => {
+  const { page, limit, search } = params;
+  
+  // বিল্ড কোয়েরি
+  const where: any = {};
+  
+  // সার্চ কন্ডিশন
+  if (search) {
+    where.name = {
+      contains: search,
+      mode: 'insensitive', // কেস-ইনসেনসিটিভ সার্চ
+    };
+  }
+  
+  // পেজিনেশন চেক
+  if (page && limit) {
+    const skip = (page - 1) * limit;
+    
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        include: {
+          _count: {
+            select: { meals: true },
+          },
+        },
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.category.count({ where }),
+    ]);
+    
+    return {
+      data: categories,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+  
+  // পেজিনেশন ছাড়া সব ক্যাটাগরি
   return prisma.category.findMany({
+    where,
     include: {
       _count: {
         select: { meals: true },

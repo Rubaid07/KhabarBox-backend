@@ -4,6 +4,11 @@ import { UserController } from "./user.controller";
 
 const router = Router();
 
+router.post(
+    "/init-provider", 
+    UserController.initProviderProfile
+);
+
 router.get(
     "/me", 
     auth(), 

@@ -25,9 +25,10 @@ const getMyProfile = async (userId: string) => {
     role: user.role,
 
     restaurantName: user.providerProfile?.restaurantName,
-    restaurantDescription: user.providerProfile?.description,
-    restaurantAddress: user.providerProfile?.address,
+    description: user.providerProfile?.description, 
+    address: user.providerProfile?.address,
     logoUrl: user.providerProfile?.logoUrl,
+    openingHours: user.providerProfile?.openingHours,
   };
 };
 
@@ -52,15 +53,15 @@ const updateProviderProfile = async (
     description?: string;
     address?: string;
     logoUrl?: string;
-  }
+    openingHours?: string;
+  },
 ) => {
   const updateData: any = {};
-  if (data.restaurantName !== undefined)
-    updateData.restaurantName = data.restaurantName;
-  if (data.description !== undefined)
-    updateData.description = data.description;
+  if (data.restaurantName !== undefined) updateData.restaurantName = data.restaurantName;
+  if (data.description !== undefined) updateData.description = data.description;
   if (data.address !== undefined) updateData.address = data.address;
   if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
+  if (data.openingHours !== undefined) updateData.openingHours = data.openingHours;
 
   const updated = await prisma.providerProfile.update({
     where: { userId },
@@ -70,8 +71,38 @@ const updateProviderProfile = async (
   return updated;
 };
 
+const initProviderProfile = async (data: {
+  email: string;
+  restaurantName: string;
+  address: string;
+}) => {
+  const { email, restaurantName, address } = data;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  return await prisma.providerProfile.upsert({
+    where: { userId: user.id },
+    update: {
+      restaurantName,
+      address,
+    },
+    create: {
+      userId: user.id,
+      restaurantName,
+      address,
+      description: "",
+      openingHours: "",
+    },
+  });
+};
+
 export const userService = {
   getMyProfile,
   updateMyProfile,
   updateProviderProfile,
+  initProviderProfile,
 };
