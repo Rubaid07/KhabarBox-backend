@@ -171,9 +171,9 @@ const getOrderStatusBreakdown = async (req: Request, res: Response) => {
 
 export const AdminController = {
   getDashboardStats,
-  getRevenueTrend,        // নতুন
-  getRecentOrders,        // নতুন
-  getTopProviders,        // নতুন
+  getRevenueTrend,
+  getRecentOrders,
+  getTopProviders,
   getOrderStatusBreakdown,
   getAllUsers,
   getAllOrders,

@@ -1,4 +1,3 @@
-// providerProfile.types.ts
 export interface CreateProviderProfileInput {
   restaurantName: string;
   description: string;

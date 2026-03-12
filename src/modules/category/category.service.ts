@@ -24,18 +24,14 @@ const createCategory = async (data: CategoryCreateInput) => {
 const getAllCategories = async (params: GetAllCategoriesParams = {}) => {
   const { page, limit, search } = params;
   
-  // বিল্ড কোয়েরি
   const where: any = {};
-  
-  // সার্চ কন্ডিশন
   if (search) {
     where.name = {
       contains: search,
-      mode: 'insensitive', // কেস-ইনসেনসিটিভ সার্চ
+      mode: 'insensitive',
     };
   }
   
-  // পেজিনেশন চেক
   if (page && limit) {
     const skip = (page - 1) * limit;
     
@@ -65,7 +61,6 @@ const getAllCategories = async (params: GetAllCategoriesParams = {}) => {
     };
   }
   
-  // পেজিনেশন ছাড়া সব ক্যাটাগরি
   return prisma.category.findMany({
     where,
     include: {

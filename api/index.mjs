@@ -84,22 +84,28 @@ var transporter = nodemailer.createTransport({
   }
 });
 var auth = betterAuth({
-  baseURL: process.env.NODE_ENV === "production" ? "https://khabarbox-backend.vercel.app" : "http://localhost:5000",
-  database: prismaAdapter(prisma, {
-    provider: "postgresql"
-  }),
-  advanced: {
-    // লোকালহোস্টে HTTPS নেই, তাই এখানে ডাইনামিক হওয়া জরুরি
-    useSecureCookies: process.env.NODE_ENV === "production",
-    crossSiteCookies: true
-    // Cross-domain (Vercel) এর জন্য এটি মাস্ট
+  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  baseURL: process.env.BETTER_AUTH_URL,
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60
+    }
   },
-  trustedOrigins: [
-    "https://khabarbox.vercel.app",
-    "https://khabarbox-backend.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:5000"
-  ],
+  advanced: {
+    cookiePrefix: "better-auth",
+    useSecureCookies: true,
+    crossSiteCookies: true,
+    disableCSRFCheck: true
+  },
+  // এটি যোগ করুন
+  cookie: {
+    attributes: {
+      sameSite: "none",
+      secure: true
+    }
+  },
+  trustedOrigins: ["https://khabarbox.vercel.app", "http://localhost:3000"],
   user: {
     additionalFields: {
       role: {
@@ -460,8 +466,13 @@ var auth = betterAuth({
       prompt: "select_account consent",
       accessType: "offline",
       clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectURI: "https://khabarbox.vercel.app/api/auth/callback/google"
     }
+  },
+  onPath: {
+    redirect: "https://khabarbox.vercel.app"
+    // লগইন শেষে এখানে পাঠাবে
   }
 });
 
@@ -3493,10 +3504,27 @@ function notFound(req, res) {
 
 // src/app.ts
 var app = express2();
-app.use(cors({
-  origin: process.env.APP_URL || "http://localhost:3000",
-  credentials: true
-}));
+var allowedOrigins = [
+  "http://localhost:3000",
+  "https://khabarbox.vercel.app"
+].filter(Boolean);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["Set-Cookie"]
+  })
+);
 app.use(express2.json());
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use("/meals", mealRouter);

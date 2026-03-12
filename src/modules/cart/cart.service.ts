@@ -24,7 +24,6 @@ const addToCart = async (customerId: string, data: AddToCartInput) => {
     },
   });
 
-  // Update quantity
   if (existingItem) {
     return prisma.cartItem.update({
       where: {
@@ -37,7 +36,6 @@ const addToCart = async (customerId: string, data: AddToCartInput) => {
     });
   }
 
-  // Create new cart item
   return prisma.cartItem.create({
     data: {
       customerId,

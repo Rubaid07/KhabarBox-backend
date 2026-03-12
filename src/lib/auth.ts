@@ -6,7 +6,7 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, // Use true for port 465, false for port 587
+  secure: false,
   auth: {
     user: process.env.APP_USER,
     pass: process.env.APP_PASS,
@@ -14,44 +14,46 @@ const transporter = nodemailer.createTransport({
 });
 
 export const auth = betterAuth({
-  baseURL: process.env.NODE_ENV === "production" 
-    ? "https://khabarbox-backend.vercel.app" 
-    : "http://localhost:5000",
-
-  database: prismaAdapter(prisma, {
-    provider: "postgresql",
-  }),
-
+  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  baseURL: process.env.BETTER_AUTH_URL,
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   advanced: {
-    // লোকালহোস্টে HTTPS নেই, তাই এখানে ডাইনামিক হওয়া জরুরি
-    useSecureCookies: process.env.NODE_ENV === "production",
-    crossSiteCookies: true, // Cross-domain (Vercel) এর জন্য এটি মাস্ট
+    cookiePrefix: "better-auth",
+    useSecureCookies: true,
+    crossSiteCookies: true,
+    disableCSRFCheck: true,
+  },
+  cookie: {
+    attributes: {
+      sameSite: "none",
+      secure: true,
+    },
   },
 
-  trustedOrigins: [
-    "https://khabarbox.vercel.app",
-    "https://khabarbox-backend.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:5000"
-  ],
+  trustedOrigins: ["https://khabarbox.vercel.app", "http://localhost:3000"],
   user: {
     additionalFields: {
-      role: { 
-        type: "string", 
-        input: true 
+      role: {
+        type: "string",
+        input: true,
       },
-      phone: { 
-        type: "string", 
-        input: true 
+      phone: {
+        type: "string",
+        input: true,
       },
-      restaurantName: { 
-        type: "string", 
-        input: true 
+      restaurantName: {
+        type: "string",
+        input: true,
       },
-      address: { 
-        type: "string", 
-        input: true 
-      },       
+      address: {
+        type: "string",
+        input: true,
+      },
     },
   },
   databaseHooks: {
@@ -395,6 +397,10 @@ export const auth = betterAuth({
       accessType: "offline",
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      redirectURI: "https://khabarbox.vercel.app/api/auth/callback/google",
     },
+  },
+  onPath: {
+    redirect: "https://khabarbox.vercel.app",
   },
 });

@@ -15,10 +15,28 @@ import { notFound } from "./middleware/notFound";
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.APP_URL || "http://localhost:3000",
-  credentials: true
-}))
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://khabarbox.vercel.app",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true, 
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["Set-Cookie"],
+  })
+);
 
 app.use(express.json())
 

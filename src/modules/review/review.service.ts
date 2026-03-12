@@ -174,7 +174,7 @@ const deleteReview = async (
     throw new Error("Review not found");
   }
 
-  // Check permission: own review OR admin
+  // Check permission
   const isOwner = review.customerId === userId;
   const isAdmin = userRole === "ADMIN";
 
