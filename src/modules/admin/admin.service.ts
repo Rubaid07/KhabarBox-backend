@@ -1,6 +1,5 @@
 import { prisma } from "../../lib/prisma";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
-import { UserRole } from "../../middleware/auth";
 
 const getDashboardStats = async () => {
   const [
@@ -148,24 +147,40 @@ const deleteUser = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      providerOrders: { where: { status: { not: "DELIVERED" } } },
-      customerOrders: { where: { status: { not: "DELIVERED" } } },
+      providerOrders: { 
+        where: { NOT: { status: { in: ["DELIVERED", "CANCELLED"] } } } 
+      },
+      customerOrders: { 
+        where: { NOT: { status: { in: ["DELIVERED", "CANCELLED"] } } } 
+      },
     },
   });
 
   if (!user) throw new Error("User not found");
-  if (user.role === "ADMIN") throw new Error("Cannot delete admin");
 
-  const pendingOrders =
-    user.role === UserRole.PROVIDER
-      ? user.providerOrders.length
-      : user.customerOrders.length;
-
-  if (pendingOrders > 0) {
-    throw new Error("User has pending orders");
+  if (user.role?.toUpperCase() === "ADMIN") {
+    throw new Error("Security Alert: Cannot delete an ADMIN account.");
   }
 
-  return prisma.user.delete({ where: { id: userId } });
+  const hasPendingOrders = user.providerOrders.length > 0 || user.customerOrders.length > 0;
+  if (hasPendingOrders) {
+    throw new Error("Cannot delete user: Active orders are still in progress.");
+  }
+
+  return await prisma.$transaction(async (tx) => {
+    if (user.role?.toUpperCase() === "PROVIDER") {
+      await tx.meal.deleteMany({ where: { providerId: userId } });
+      await tx.providerProfile.deleteMany({ where: { userId } });
+    }
+
+    await tx.cartItem.deleteMany({ where: { customerId: userId } });
+    await tx.review.deleteMany({ where: { customerId: userId } });
+
+    await tx.session.deleteMany({ where: { userId } });
+    await tx.account.deleteMany({ where: { userId } });
+
+    return tx.user.delete({ where: { id: userId } });
+  });
 };
 
 const updateOrderStatus = async (orderId: string, status: string) => {

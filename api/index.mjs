@@ -77,7 +77,6 @@ var transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
-  // Use true for port 465, false for port 587
   auth: {
     user: process.env.APP_USER,
     pass: process.env.APP_PASS
@@ -98,7 +97,6 @@ var auth = betterAuth({
     crossSiteCookies: true,
     disableCSRFCheck: true
   },
-  // এটি যোগ করুন
   cookie: {
     attributes: {
       sameSite: "none",
@@ -472,7 +470,6 @@ var auth = betterAuth({
   },
   onPath: {
     redirect: "https://khabarbox.vercel.app"
-    // লগইন শেষে এখানে পাঠাবে
   }
 });
 
@@ -625,8 +622,8 @@ var updateMeal = async (id, data) => {
   });
 };
 var deleteMeal = async (id) => {
-  return prisma.meal.delete({
-    where: { id }
+  return await prisma.$transaction(async (tx) => {
+    return tx.meal.delete({ where: { id } });
   });
 };
 var getSuggestions = async (query) => {
@@ -875,8 +872,10 @@ var deleteMeal2 = async (req, res) => {
     if (!existingMeal) {
       return res.status(404).json({ success: false, error: "Meal not found" });
     }
-    if (existingMeal.providerId !== user.id) {
-      return res.status(403).json({ success: false, error: "Not your meal" });
+    const isOwner = existingMeal.providerId === user.id;
+    const isAdmin = user.role === "ADMIN";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, error: "You don't have permission to delete this meal" });
     }
     await mealService.deleteMeal(mealId);
     res.status(200).json({
@@ -886,8 +885,7 @@ var deleteMeal2 = async (req, res) => {
   } catch (e) {
     res.status(400).json({
       success: false,
-      error: "Delete failed",
-      details: e
+      error: e.message || "Delete failed"
     });
   }
 };
@@ -2323,17 +2321,33 @@ var deleteUser = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      providerOrders: { where: { status: { not: "DELIVERED" } } },
-      customerOrders: { where: { status: { not: "DELIVERED" } } }
+      providerOrders: {
+        where: { NOT: { status: { in: ["DELIVERED", "CANCELLED"] } } }
+      },
+      customerOrders: {
+        where: { NOT: { status: { in: ["DELIVERED", "CANCELLED"] } } }
+      }
     }
   });
   if (!user) throw new Error("User not found");
-  if (user.role === "ADMIN") throw new Error("Cannot delete admin");
-  const pendingOrders = user.role === "PROVIDER" /* PROVIDER */ ? user.providerOrders.length : user.customerOrders.length;
-  if (pendingOrders > 0) {
-    throw new Error("User has pending orders");
+  if (user.role?.toUpperCase() === "ADMIN") {
+    throw new Error("Security Alert: Cannot delete an ADMIN account.");
   }
-  return prisma.user.delete({ where: { id: userId } });
+  const hasPendingOrders = user.providerOrders.length > 0 || user.customerOrders.length > 0;
+  if (hasPendingOrders) {
+    throw new Error("Cannot delete user: Active orders are still in progress.");
+  }
+  return await prisma.$transaction(async (tx) => {
+    if (user.role?.toUpperCase() === "PROVIDER") {
+      await tx.meal.deleteMany({ where: { providerId: userId } });
+      await tx.providerProfile.deleteMany({ where: { userId } });
+    }
+    await tx.cartItem.deleteMany({ where: { customerId: userId } });
+    await tx.review.deleteMany({ where: { customerId: userId } });
+    await tx.session.deleteMany({ where: { userId } });
+    await tx.account.deleteMany({ where: { userId } });
+    return tx.user.delete({ where: { id: userId } });
+  });
 };
 var updateOrderStatus = async (orderId, status) => {
   const order = await prisma.orders.findUnique({ where: { id: orderId } });
@@ -2652,11 +2666,8 @@ var getOrderStatusBreakdown2 = async (req, res) => {
 var AdminController = {
   getDashboardStats: getDashboardStats2,
   getRevenueTrend: getRevenueTrend2,
-  // নতুন
   getRecentOrders: getRecentOrders2,
-  // নতুন
   getTopProviders: getTopProviders2,
-  // নতুন
   getOrderStatusBreakdown: getOrderStatusBreakdown2,
   getAllUsers: getAllUsers2,
   getAllOrders: getAllOrders2,
@@ -2753,7 +2764,6 @@ var getAllCategories = async (params = {}) => {
     where.name = {
       contains: search,
       mode: "insensitive"
-      // কেস-ইনসেনসিটিভ সার্চ
     };
   }
   if (page && limit) {

@@ -169,8 +169,11 @@ const deleteMeal = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: "Meal not found" });
     }
     
-    if (existingMeal.providerId !== user.id) {
-      return res.status(403).json({ success: false, error: "Not your meal" });
+    const isOwner = existingMeal.providerId === user.id;
+    const isAdmin = user.role === "ADMIN";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, error: "You don't have permission to delete this meal" });
     }
 
     await mealService.deleteMeal(mealId as string);
@@ -179,11 +182,10 @@ const deleteMeal = async (req: Request, res: Response) => {
       success: true,
       message: "Meal deleted successfully",
     });
-  } catch (e) {
+  } catch (e: any) {
     res.status(400).json({
       success: false,
-      error: "Delete failed",
-      details: e,
+      error: e.message || "Delete failed",
     });
   }
 };

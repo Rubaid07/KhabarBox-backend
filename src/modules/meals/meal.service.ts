@@ -170,8 +170,8 @@ const updateMeal = async (id: string, data: Partial<CreateMealInput>) => {
 };
 
 const deleteMeal = async (id: string) => {
-  return prisma.meal.delete({
-    where: { id },
+  return await prisma.$transaction(async (tx) => {
+    return tx.meal.delete({ where: { id } });
   });
 };
 
