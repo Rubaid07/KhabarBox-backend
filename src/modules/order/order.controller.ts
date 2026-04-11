@@ -5,13 +5,14 @@ import { OrderStatus } from "../../../generated/prisma/enums";
 const placeOrder = async (req: Request, res: Response) => {
   try {
     const user = req.user!;
-    
-    const { deliveryAddress, phone, notes } = req.body;
+
+    const { deliveryAddress, phone, notes, paymentMethod } = req.body;
 
     const result = await orderService.placeOrder(user.id, {
       deliveryAddress,
-      phone, 
-      notes
+      phone,
+      notes,
+      paymentMethod: paymentMethod || "COD",
     });
 
     res.status(201).json({
@@ -23,6 +24,57 @@ const placeOrder = async (req: Request, res: Response) => {
     res.status(400).json({
       success: false,
       message: e.message || "Failed to place order",
+    });
+  }
+};
+
+const createStripeCheckoutSession = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { deliveryAddress, phone, notes } = req.body;
+
+    const sessionData = await orderService.createStripeCheckoutSession(
+      user.id,
+      {
+        deliveryAddress,
+        phone,
+        notes,
+      },
+    );
+
+    res.status(200).json({
+      success: true,
+      data: sessionData,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message || "Failed to create checkout session",
+    });
+  }
+};
+
+const verifyStripePayment = async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { sessionId } = req.params;
+    const { deliveryAddress, phone, notes } = req.body;
+
+    const orders = await orderService.verifyStripePayment(sessionId, user.id, {
+      deliveryAddress,
+      phone,
+      notes,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Payment verified and orders created",
+      data: orders,
+    });
+  } catch (e: any) {
+    res.status(400).json({
+      success: false,
+      message: e.message || "Failed to verify payment",
     });
   }
 };
@@ -67,7 +119,11 @@ const getOrderById = async (req: Request, res: Response) => {
     const user = req.user!;
     const { id } = req.params;
 
-    const result = await orderService.getOrderById(id as string, user.id, user.role);
+    const result = await orderService.getOrderById(
+      id as string,
+      user.id,
+      user.role,
+    );
 
     res.status(200).json({
       success: true,
@@ -88,9 +144,9 @@ const updateStatus = async (req: Request, res: Response) => {
     const { status } = req.body;
 
     const result = await orderService.updateStatus(
-      id as string, 
-      user.id, 
-      status as OrderStatus
+      id as string,
+      user.id,
+      status as OrderStatus,
     );
 
     res.status(200).json({
@@ -127,10 +183,12 @@ const cancelOrder = async (req: Request, res: Response) => {
 };
 
 export const OrderController = {
-    placeOrder,
-    getMyOrders,
-    getProviderOrders,
-    getOrderById,
-    updateStatus,
-    cancelOrder
-}
+  placeOrder,
+  createStripeCheckoutSession,
+  verifyStripePayment,
+  getMyOrders,
+  getProviderOrders,
+  getOrderById,
+  updateStatus,
+  cancelOrder,
+};

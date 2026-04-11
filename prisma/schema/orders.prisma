@@ -8,6 +8,14 @@ enum OrderStatus {
 
 enum PaymentMethod {
     COD
+    STRIPE
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+    CANCELLED
 }
 
 model Orders {
@@ -18,6 +26,8 @@ model Orders {
     notes           String?
     status          OrderStatus   @default(PLACED)
     paymentMethod   PaymentMethod @default(COD)
+    paymentStatus   PaymentStatus @default(PENDING)
+    stripeSessionId String?
 
     customerId String
     customer   User   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
@@ -32,6 +42,8 @@ model Orders {
     @@index([customerId])
     @@index([providerId])
     @@index([status])
+    @@index([paymentStatus])
+    @@index([stripeSessionId])
     @@index([createdAt])
     @@map("orders")
 }
