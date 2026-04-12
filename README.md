@@ -13,11 +13,60 @@
 
 KhabarBox is a comprehensive **multi-vendor food ordering platform** built with modern web technologies. It connects food lovers with local restaurants, offering a seamless experience for customers, restaurant owners (providers), and administrators.
 
+KhabarBox also supports Stripe-based payment processing for secure order checkout and payment authorization.
+
+---
+
+## 🚀 Project Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Rubaid07/KhabarBox-backend.git
+   cd KhabarBox-backend
+   ```
+
+2. Install backend dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the backend root with your local credentials.
+
+   Example values:
+
+   ```env
+   DATABASE_URL=postgresql://username:password@localhost:5432/khabarbox
+   PORT=5000
+   BETTER_AUTH_SECRET=your_better_auth_secret
+   BETTER_AUTH_URL=http://localhost:5000
+   APP_URL=http://localhost:3000
+   APP_USER=admin@example.com
+   APP_PASS=your-secure-password
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   STRIPE_SECRET_KEY=sk_test_your_demo_key
+   ```
+
+4. Start the backend in development mode:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Confirm the backend API is available at:
+
+   ```text
+   http://localhost:5000
+   ```
+
 ---
 
 ## Features
 
 **For Customers:**
+
 - Secure authentication with email/password & Google OAuth, including email verification
 - Advanced meal search with filters (price range, dietary tags, categories, restaurants)
 - Persistent cart with multi-restaurant support
@@ -26,6 +75,7 @@ KhabarBox is a comprehensive **multi-vendor food ordering platform** built with 
 - Auto-complete search suggestions for meals, tags, and restaurants
 
 **For Providers (Restaurants):**
+
 - Dashboard with revenue, orders, and performance metrics
 - Full CRUD operations for meal management with category support
 - Accept, prepare, and update order status in real time
@@ -33,6 +83,7 @@ KhabarBox is a comprehensive **multi-vendor food ordering platform** built with 
 - Weekly revenue charts and popular items tracking
 
 **For Administrators:**
+
 - System-wide overview of users, orders, and revenue
 - User management with suspend, activate, and delete capabilities
 - Global order monitoring and status control
@@ -43,15 +94,15 @@ KhabarBox is a comprehensive **multi-vendor food ordering platform** built with 
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js 20+ |
-| Language | TypeScript 5+ |
-| Framework | Express.js 4 |
-| Database | PostgreSQL |
-| ORM | Prisma 5+ |
-| Authentication | Better Auth |
-| Email Service | Nodemailer (Gmail SMTP) |
+| Layer          | Technology              |
+| -------------- | ----------------------- |
+| Runtime        | Node.js 20+             |
+| Language       | TypeScript 5+           |
+| Framework      | Express.js 4            |
+| Database       | PostgreSQL              |
+| ORM            | Prisma 5+               |
+| Authentication | Better Auth             |
+| Email Service  | Nodemailer (Gmail SMTP) |
 
 ---
 
@@ -68,6 +119,7 @@ http://localhost:5000
 Most endpoints require a session cookie set by Better Auth after login. Protected routes are marked with `Auth Required`.
 
 Role-based access is enforced on every route:
+
 - `CUSTOMER` : Access to cart, orders, and reviews
 - `PROVIDER` : Access to meal management and provider dashboard
 - `ADMIN` : Full platform access
@@ -95,6 +147,7 @@ Content-Type: application/json
 ```
 
 Request body:
+
 ```json
 {
   "email": "user@example.com",
@@ -105,6 +158,7 @@ Request body:
 ```
 
 Response `201 Created`:
+
 ```json
 {
   "success": true,
@@ -134,6 +188,7 @@ Content-Type: application/json
 ```
 
 Request body:
+
 ```json
 {
   "email": "user@example.com",
@@ -142,6 +197,7 @@ Request body:
 ```
 
 Response `200 OK`:
+
 ```json
 {
   "success": true,
@@ -174,11 +230,16 @@ Cookie: better-auth.session=xyz
 ```
 
 Response `200 OK`:
+
 ```json
 {
   "success": true,
   "data": {
-    "user": { "id": "user-uuid", "email": "user@example.com", "role": "CUSTOMER" },
+    "user": {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "role": "CUSTOMER"
+    },
     "session": { "id": "session-uuid", "expiresAt": "2025-01-16T10:30:00Z" }
   }
 }
@@ -198,19 +259,20 @@ GET /meals?search=biryani&categoryId=cat-123&minPrice=100&maxPrice=500&dietaryTa
 
 Query Parameters:
 
-| Parameter | Type | Description |
-|---|---|---|
-| `search` | string | Search by meal name |
-| `categoryId` | string | Filter by category |
-| `minPrice` | number | Minimum price |
-| `maxPrice` | number | Maximum price |
-| `dietaryTags` | string | Comma-separated tags |
-| `sortBy` | string | `price` or `createdAt` |
-| `sortOrder` | string | `asc` or `desc` |
-| `page` | number | Page number (default: 1) |
-| `limit` | number | Items per page (default: 10) |
+| Parameter     | Type   | Description                  |
+| ------------- | ------ | ---------------------------- |
+| `search`      | string | Search by meal name          |
+| `categoryId`  | string | Filter by category           |
+| `minPrice`    | number | Minimum price                |
+| `maxPrice`    | number | Maximum price                |
+| `dietaryTags` | string | Comma-separated tags         |
+| `sortBy`      | string | `price` or `createdAt`       |
+| `sortOrder`   | string | `asc` or `desc`              |
+| `page`        | number | Page number (default: 1)     |
+| `limit`       | number | Items per page (default: 10) |
 
 Response `200 OK`:
+
 ```json
 {
   "success": true,
@@ -219,7 +281,7 @@ Response `200 OK`:
       {
         "id": "meal-uuid-1",
         "name": "Chicken Biryani",
-        "price": 250.00,
+        "price": 250.0,
         "imageUrl": "https://example.com/biryani.jpg",
         "isAvailable": true,
         "dietaryTags": ["spicy", "halal"],
@@ -254,6 +316,7 @@ Content-Type: application/json
 ```
 
 Request body:
+
 ```json
 {
   "name": "Beef Tehari",
@@ -293,6 +356,7 @@ GET /meals/suggestions?query=chi
 ```
 
 Response `200 OK`:
+
 ```json
 {
   "success": true,
@@ -324,6 +388,7 @@ Error `400` : `"Meal not available"`
 #### GET /cart : Get my cart
 
 Response `200 OK`:
+
 ```json
 {
   "success": true,
@@ -332,10 +397,10 @@ Response `200 OK`:
       {
         "id": "cart-item-uuid",
         "quantity": 2,
-        "meal": { "name": "Chicken Biryani", "price": 250.00 }
+        "meal": { "name": "Chicken Biryani", "price": 250.0 }
       }
     ],
-    "meta": { "totalItems": 3, "totalAmount": 530.00 }
+    "meta": { "totalItems": 3, "totalAmount": 530.0 }
   }
 }
 ```
@@ -529,11 +594,11 @@ Returns full restaurant profile with menu and reviews.
   "success": true,
   "data": {
     "totalOrders": 156,
-    "totalRevenue": 45000.00,
+    "totalRevenue": 45000.0,
     "pendingOrders": 12,
     "totalMeals": 25,
     "todayOrders": 8,
-    "weeklyRevenue": 8500.00
+    "weeklyRevenue": 8500.0
   }
 }
 ```
@@ -568,8 +633,8 @@ Returns daily order count and revenue for the current week.
 {
   "success": true,
   "data": [
-    { "day": "Sun", "orders": 5, "revenue": 1500.00 },
-    { "day": "Mon", "orders": 8, "revenue": 2400.00 }
+    { "day": "Sun", "orders": 5, "revenue": 1500.0 },
+    { "day": "Mon", "orders": 8, "revenue": 2400.0 }
   ]
 }
 ```
@@ -636,7 +701,7 @@ Error `400` : `"Cannot delete category with existing meals"`
   "data": {
     "users": { "total": 150, "providers": 25, "customers": 125 },
     "orders": { "total": 1200, "pending": 45 },
-    "revenue": 350000.00
+    "revenue": 350000.0
   }
 }
 ```
@@ -727,11 +792,11 @@ Returns count per status with color codes for chart rendering.
 {
   "success": true,
   "data": [
-    { "name": "PLACED",    "value": 45,   "color": "#3b82f6" },
-    { "name": "PREPARING", "value": 32,   "color": "#f59e0b" },
-    { "name": "READY",     "value": 18,   "color": "#8b5cf6" },
+    { "name": "PLACED", "value": 45, "color": "#3b82f6" },
+    { "name": "PREPARING", "value": 32, "color": "#f59e0b" },
+    { "name": "READY", "value": 18, "color": "#8b5cf6" },
     { "name": "DELIVERED", "value": 1105, "color": "#10b981" },
-    { "name": "CANCELLED", "value": 12,   "color": "#ef4444" }
+    { "name": "CANCELLED", "value": 12, "color": "#ef4444" }
   ]
 }
 ```

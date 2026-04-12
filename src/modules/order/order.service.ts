@@ -135,7 +135,7 @@ const createStripeCheckoutSession = async (
   // Create line items for Stripe
   const lineItems = cartItems.map((item) => ({
     price_data: {
-      currency: "usd",
+      currency: "bdt",
       product_data: {
         name: item.meal.name,
         images: item.meal.imageUrl ? [item.meal.imageUrl] : [],
